@@ -16,7 +16,7 @@ Projede, aşağıdaki akıllı sözleşmeler kullanılmıştır:
 
 Projeyi yerel bir Ethereum geliştirme ortamında veya bir test ağı üzerinde çalıştırmak için aşağıdaki adımları izleyebilirsiniz:
 
-1. Repoyu klonlayın: `git clone https://github.com/kullanici/çiftlik-oyunu.git`
+1. Repoyu klonlayın: `git clone https://github.com/haylas/çiftlik-oyunu.git`
 2. Gerekli bağımlılıkları yükleyin: `npm install`
 3. Geliştirme ortamını başlatın: `npm start`
 

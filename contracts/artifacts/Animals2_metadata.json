@@ -1,0 +1,88 @@
+{
+	"compiler": {
+		"version": "0.8.20+commit.a1b79de6"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "animals",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "kind",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "age",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "numberOfAnimal",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAnimalCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/animals.sol": "Animals2"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/animals.sol": {
+			"keccak256": "0x77a81c283d78c1aae7b234ada1de86e0aef8fbf2bfb29d8c5fbe2147bf8d6e9d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://55a1924cd747ca18b2891f3cadfde133571ae7b4f32c02de88f8d6faad4b9d36",
+				"dweb:/ipfs/QmUHL2ECGzrvhwAheAChH2BmrfcRPMkE5aFVkhvFVt7ptW"
+			]
+		}
+	},
+	"version": 1
+}

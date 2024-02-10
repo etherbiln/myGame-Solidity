@@ -1,0 +1,73 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"functionDebugData": {
+				"@_174": {
+					"entryPoint": null,
+					"id": 174,
+					"parameterSlots": 0,
+					"returnSlots": 0
+				}
+			},
+			"generatedSources": [],
+			"linkReferences": {},
+			"object": "6080604052348015600e575f80fd5b505f3373ffffffffffffffffffffffffffffffffffffffff1631116030575f80fd5b603e80603b5f395ff3fe60806040525f80fdfea26469706673582212200972aeb6a2f0be1041560e0bf7e82a779ae5693e9201cc46a9b01e72b99ad07a64736f6c63430008140033",
+			"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH0 CALLER PUSH20 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF AND BALANCE GT PUSH1 0x30 JUMPI PUSH0 DUP1 REVERT JUMPDEST PUSH1 0x3E DUP1 PUSH1 0x3B PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 MULMOD PUSH19 0xAEB6A2F0BE1041560E0BF7E82A779AE5693E92 ADD 0xCC CHAINID 0xA9 0xB0 0x1E PUSH19 0xB99AD07A64736F6C6343000814003300000000 ",
+			"sourceMap": "118:274:2:-:0;;;313:72;;;;;;;;;;367:7;346:10;:18;;;:28;338:37;;;;;;118:274;;;;;;"
+		},
+		"deployedBytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "60806040525f80fdfea26469706673582212200972aeb6a2f0be1041560e0bf7e82a779ae5693e9201cc46a9b01e72b99ad07a64736f6c63430008140033",
+			"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 MULMOD PUSH19 0xAEB6A2F0BE1041560E0BF7E82A779AE5693E92 ADD 0xCC CHAINID 0xA9 0xB0 0x1E PUSH19 0xB99AD07A64736F6C6343000814003300000000 ",
+			"sourceMap": "118:274:2:-:0;;;;;"
+		},
+		"gasEstimates": {
+			"creation": {
+				"codeDepositCost": "12400",
+				"executionCost": "2691",
+				"totalCost": "15091"
+			}
+		},
+		"methodIdentifiers": {}
+	},
+	"abi": [
+		{
+			"inputs": [],
+			"stateMutability": "nonpayable",
+			"type": "constructor"
+		}
+	]
+}
