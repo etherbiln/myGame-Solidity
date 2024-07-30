@@ -69,11 +69,9 @@ The contract interacts with a custom ERC-20 token. Ensure that you provide the c
 
 ```solidity
 constructor(address _tokenAddress, uint256 _clueCost, uint256 _supportPackageBlocks, uint256 _gameDuration)
+```
 
-
-## Development
-
-### Compile Smart Contracts
+### Compile and Deploy Smart Contracts
 
 Compile the smart contracts by running the following command:
 
