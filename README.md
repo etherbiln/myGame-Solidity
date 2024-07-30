@@ -69,3 +69,26 @@ The contract interacts with a custom ERC-20 token. Ensure that you provide the c
 
 ```solidity
 constructor(address _tokenAddress, uint256 _clueCost, uint256 _supportPackageBlocks, uint256 _gameDuration)
+
+
+## Development
+
+### Compile Smart Contracts
+
+Compile the smart contracts by running the following command:
+
+```sh
+npx hardhat compile
+```
+
+deploy Sepolia
+```sh
+npx hardhat run scripts/deploy.js --network sepolia
+```
+
+console hardhat
+```sh
+npx hardhat console  --network sepolia
+```
+
+![Example](./images/example.png)
