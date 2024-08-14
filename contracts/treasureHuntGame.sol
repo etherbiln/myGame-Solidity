@@ -4,14 +4,21 @@ pragma solidity ^0.8.20;
 import "contracts/token.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-
-contract TreasureHuntGame{
+contract TreasureHuntGame is Ownable {
     address ownerGameAddress = 0xAC0775EA1214Dd83c9e9951e6C476605d11ECEF6;
+    MyToken public token;
+    
+    uint8 tokenDecimals = 18;
     
     uint256 public constant GRID_SIZE = 32;
-    uint256 public constant TOTAL_BLOCKS = GRID_SIZE*GRID_SIZE;
-    uint8 tokenDecimals = 18;
-    MyToken public token;
+    uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE;
+
+    uint256 public totalBalance;
+    uint256 public clueCost;
+    uint256 public supportPackageBlocks;
+    uint256 public totalPlayers;
+    uint256 public gameStartTime;
+    uint256 public gameDuration;
 
     struct Block {
         bool isTreasure;
@@ -26,85 +33,90 @@ contract TreasureHuntGame{
         uint stepsCount;
     }
 
-    mapping (uint256  => Block) public blocks;
+    mapping (uint256 => Block) public blocks;
     mapping (address => Player) public players;
 
-    address[] public  playerAddresses;
+    address[] public playerAddresses;
 
-    uint256 totalBalance;
-    uint256 public clueCost;
-    uint256 public supportPackageBlocks;
-    uint256 public totalPlayers; //
-    uint256 public gameStartTime;
-    uint256 public gameDuration;
+    event GameStarted(uint256 startTime);
+    event PlayerJoined(address player);
+    event PlayerMoved(address player, uint x, uint y);
+    event CluePurchased(address player);
 
-    constructor(address _tokenAddress, uint256 _clueCost, uint256 _supportPackageBlocks, uint256 _gameDuration) {
+    constructor(address _tokenAddress, uint256 _clueCost, uint256 _supportPackageBlocks, uint256 _gameDuration)Ownable(msg.sender) {
         token = MyToken(_tokenAddress);
         clueCost = _clueCost;
         supportPackageBlocks = _supportPackageBlocks;
         gameDuration = _gameDuration;
+        
+        // Initialize blocks with default values if necessary
+        for (uint256 i = 0; i < TOTAL_BLOCKS; i++) {
+            blocks[i] = Block(false, false);
+        }
     }
 
     function joinGame() external {
         require(!players[msg.sender].hasJoined, "Player already joined");
         require(totalPlayers < 30, "Game is full");
         
-        players[msg.sender] = Player(true,false,0,0,0);
+        players[msg.sender] = Player(true, false, 0, 0, 0);
         playerAddresses.push(msg.sender);
         totalPlayers++;
+        emit PlayerJoined(msg.sender);
     }
 
-    function startGame() external {
-        //require(totalPlayers == 30,"Not enough players to start!");
-        require(gameStartTime == 0,"Game already started");
+    function startGame() external onlyOwner {
+        require(gameStartTime == 0, "Game already started");
         gameStartTime = block.timestamp;
-
+        emit GameStarted(gameStartTime);
     }   
 
     function testDirection(string memory _direction) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_direction));
     }
 
-    function movePlayer(string memory _direction) public {
-        require(players[msg.sender].hasJoined,"Player not Joined!");
+    function movePlayer(string memory _direction) public onlyDuringGame onlyPlayer {
         require(players[msg.sender].stepsCount < 15, "Player has exceeded max steps!");
-        require(block.timestamp >= gameStartTime + gameDuration,"Game is over");
-       
-        uint256 x = players[msg.sender].x;
-        uint256 y = players[msg.sender].y; 
-        uint256 newx = x;
-        uint256 newy = y; 
-       
-       
-        if(keccak256(abi.encodePacked(_direction)) == testDirection("up")){
-            newy = y + 1;  
-        }else if(keccak256(abi.encodePacked(_direction)) == testDirection("down")){
-            newy = y - 1;  
-        }else if(keccak256(abi.encodePacked(_direction)) == testDirection("left")){
-            newx = x - 1;  
-        }else if(keccak256(abi.encodePacked(_direction)) == testDirection("right")){
-            newx = x + 1;  
-        }else{
-            revert("Invalid direction");
-        } 
 
-        // oyun mantığı düzenlemek gerek        
-        if(newx >= GRID_SIZE || newy >= GRID_SIZE){
-            revert("Out of bounds");
-        }else if(blocks[newx*GRID_SIZE+newy].isTreasure){
+        uint256 x = players[msg.sender].x;
+        uint256 y = players[msg.sender].y;
+        uint256 newx = x;
+        uint256 newy = y;
+
+        bytes32 directionHash = keccak256(abi.encodePacked(_direction));
+
+        bytes32 up = keccak256(abi.encodePacked("up"));
+        bytes32 down = keccak256(abi.encodePacked("down"));
+        bytes32 left = keccak256(abi.encodePacked("left"));
+        bytes32 right = keccak256(abi.encodePacked("right"));
+
+        if (directionHash == up) {
+            newy = y + 1;
+        } else if (directionHash == down) {
+            newy = y - 1;
+        } else if (directionHash == left) {
+            newx = x - 1;
+        } else if (directionHash == right) {
+            newx = x + 1;
+        } else {
+            revert("Invalid direction");
+        }
+        require(newx < GRID_SIZE && newy < GRID_SIZE, "Out of bounds");
+
+        if (blocks[newx * GRID_SIZE + newy].isTreasure) {
             revert("Player found treasure");
-        }else if(blocks[newx*GRID_SIZE+newy].isSupportPackage){
+        } else if (blocks[newx * GRID_SIZE + newy].isSupportPackage) {
             revert("Player found support package");
-        }else{
+        } else {
             players[msg.sender].x = newx;
             players[msg.sender].y = newy;
             players[msg.sender].stepsCount++;
+            emit PlayerMoved(msg.sender, newx, newy);
         }
     }
     
     function findLocation() public view returns (uint256 x, uint256 y) {
         Player memory player = players[msg.sender];
-
         require(player.hasJoined, "Player has not joined the game");
 
         x = player.x;
@@ -112,77 +124,19 @@ contract TreasureHuntGame{
     }
 
     function buyClue() external onlyDuringGame onlyPlayer {
-        require(token.transferFrom(msg.sender, ownerGameAddress, clueCost), "Clue purchase failed");
+        require(!players[msg.sender].hasClue, "Player already has a clue");
+
+    // Update state variable before external call
         players[msg.sender].hasClue = true;
-    }
 
-    function getClue() public view onlyPlayer {
-        require(players[msg.sender].hasClue, "Player does not have a clue");
-        // Implement logic to provide a clue location
-        // Example: Provide the location of the nearest treasure or support package
-    }
+    // Perform the external call after state update
+        require(token.transferFrom(msg.sender, ownerGameAddress, clueCost), "Clue purchase failed");
 
-    function findSupportPackage() external view onlyPlayer returns (string memory) {
-        Player memory player = players[msg.sender];
-        uint256 x = player.x;
-        uint256 y = player.y;
-        Block memory currentBlock = blocks[x + y * GRID_SIZE];
-        if (currentBlock.isSupportPackage) {
-            return "Support Package Found!";
-        }
-        return "No Support Package Here.";
-    }
+        emit CluePurchased(msg.sender);
+   }
 
-    function findTreasure() external onlyPlayer {
-        Player memory player = players[msg.sender];
-
-        uint256 x = player.x;
-        uint256 y = player.y;
-
-        Block memory currentBlock = blocks[x + y * GRID_SIZE];
-        
-        if (currentBlock.isTreasure) {
-            uint256 treasureReward = 1000 * 10 ** tokenDecimals;
-            require(token.transfer(msg.sender, treasureReward), "Treasure reward transfer failed");
-            players[msg.sender].stepsCount = 101; // 101 adımda çıkış yapılır ve puan
-        }
-    }
-    
-
-    function getGameStatus() external view returns (string memory) {
-        if (gameStartTime == 0) {
-            return "Game has not started yet.";
-        } else if (block.timestamp >= gameStartTime + gameDuration) {
-            return "Game is in progress.";
-        } else {
-            return "Game is in Over.";
-        }
-    }
-
-    function determineWinner() internal view returns (address) {
-        address winner;
-        uint256 maxSteps = 0;
-        for (uint i = 0; i < playerAddresses.length; i++) {
-            address playerAddress = playerAddresses[i];
-            if (players[playerAddress].stepsCount > maxSteps) {
-                maxSteps = players[playerAddress].stepsCount;
-                winner = playerAddress;
-            }
-        }
-        return winner;
-    }
-    function winnerAddress() public view returns(address){
-        address winAddress = determineWinner();
-        return winAddress;
-    }
-
-    modifier JoinedGame {
-        require(!players[msg.sender].hasJoined, "Player already joined!");
-        _;
-    }
-
-    modifier onlyDuringGame() {
-        require(gameStartTime > 0 && block.timestamp < gameStartTime + gameDuration, "Game is not active");
+     modifier onlyDuringGame() {
+        require(block.timestamp <= gameStartTime + gameDuration, "Game is over");
         _;
     }
 
