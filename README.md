@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `TreasureHuntGame` smart contract is a blockchain-based treasure hunt game implemented in Solidity. Players can join the game, move around a grid, and find treasures and support packages. The game uses a custom ERC-20 token for in-game transactions such as buying clues.
+The `TreasureHuntGame` is a decentralized game built on the Ethereum blockchain. It allows players to join a treasure hunt, move within the game, buy clues, and find locations. The game is managed by three main components: `PlayerManager`, `BlockManager`, and `TokenManager`.
 
 ## Features
 
@@ -16,54 +16,6 @@ The `TreasureHuntGame` smart contract is a blockchain-based treasure hunt game i
 
 The contract interacts with a custom ERC-20 token. Ensure that you provide the correct token address during deployment.
 
-## Functions
-
-### `joinGame()`
-
-- Allows a player to join the game.
-- Requires that the player has not joined before and the game is not full.
-
-### `startGame()`
-
-- Starts the game if it has not been started yet.
-
-### `movePlayer(string memory _direction)`
-
-- Moves the player in the specified direction (`"up"`, `"down"`, `"left"`, `"right"`).
-- Updates the player's position and checks for treasure or support packages.
-
-### `buyClue()`
-
-- Allows a player to buy a clue by transferring tokens to the game contract.
-- Only callable during the game.
-
-### `getClue()`
-
-- Provides a clue to the player if they have purchased one.
-- The logic for providing clues should be implemented.
-
-### `findSupportPackage()`
-
-- Checks if the player is on a block with a support package.
-
-### `findTreasure()`
-
-- Checks if the player has found a treasure and rewards them with tokens.
-- Ends the game for the player who finds the treasure.
-
-### `getGameStatus()`
-
-- Returns the current status of the game: not started, in progress, or over.
-
-### `winnerAddress()`
-
-- Determines and returns the address of the current winner based on the number of steps taken.
-
-## Modifiers
-
-- **`JoinedGame`**: Ensures the player has not joined the game already.
-- **`onlyDuringGame`**: Ensures the function is called during an active game.
-- **`onlyPlayer`**: Ensures the function is called by a player who has joined the game.
 
 ## Constructor
 
