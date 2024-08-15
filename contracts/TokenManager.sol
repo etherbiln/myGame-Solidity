@@ -14,6 +14,8 @@ contract TokenManager {
     }
 
     function purchaseClue(address _player) external {
+        require(_player != address(0), "Invalid player address");
+        require(token.allowance(_player, address(this)) >= clueCost, "Allowance too low");
         require(token.transferFrom(_player, ownerGameAddress, clueCost), "Clue purchase failed");
     }
 }
