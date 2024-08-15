@@ -24,6 +24,11 @@ Each player navigates the virtual world, using **clues** and **strategies** to l
 3. **Player Movement:** Players navigate the game world using the `movePlayer` function.
 4. **Clue Purchasing:** Players can purchase clues using the `buyClue` function to assist in locating the treasure.
 
+
+### ROADMAP
+
+![Example](./images/roadmap.png)
+
 ---
 
 ### 🚀 Compile and Deploy Smart Contracts
