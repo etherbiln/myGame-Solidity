@@ -38,27 +38,44 @@ contract TreasureHuntGame is Ownable {
         emit GameStarted(gameStartTime);
     }
 
-    function movePlayer(string memory _direction) external onlyDuringGame {
+    function movePlayer(string memory _direction) external  onlyDuringGame {
         playerManager.movePlayer(msg.sender, _direction, blockManager);
     }
 
-    function buyClue() external onlyDuringGame {
-        playerManager.buyClue(msg.sender, tokenManager);
+    function buyClue() external payable onlyDuringGame {
+        playerManager.buyClue(msg.sender);
     }
 
+    // CHECK
+    function checkTreasure() public view {
+        require(blockManager.checkTreasure(), "No treasure at this location");
+    }
+
+    function checkSupportPackage() public view {
+        require(blockManager.checkSupportPackage(), "No support package at this location");
+    }
+    
     function findLocation() public view returns (uint256 x, uint256 y) {
         return playerManager.findLocation(msg.sender);
     }
 
-    modifier onlyDuringGame() {
-        require(block.timestamp <= gameStartTime + gameDuration, "Game is over");
-        _;
+    // CLAIMS
+    
+    function claimSupportPackage(address _player) public payable  {
+        tokenManager.claimSupportPackage(_player);
+    }
+    
+    function claimTreasure(address _player) public payable  {
+        tokenManager.claimTreasure(_player); 
+    }
+    
+    /// GET
+
+    function getTotalPlayers() public view returns (uint256) {
+        return playerManager.getTotalPlayers();
     }
 
-    modifier onlyAuthorized() {
-        require(msg.sender == authorizedAddress, "Not authorized");
-        _;
-    }
+    /// SET
 
     function setPlayerManager(address _playerManager) external onlyOwner {
         playerManager = PlayerManager(_playerManager);
@@ -74,5 +91,17 @@ contract TreasureHuntGame is Ownable {
 
     function setAuthorizedAddress(address _authorizedAddress) external onlyOwner {
         authorizedAddress = _authorizedAddress;
+    }
+
+    /// MODIFIER
+
+    modifier onlyDuringGame() {
+        require(block.timestamp <= gameStartTime + gameDuration, "Game is over");
+        _;
+    }
+
+    modifier onlyAuthorized() {
+        require(msg.sender == authorizedAddress, "Not authorized");
+        _;
     }
 }

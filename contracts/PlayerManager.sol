@@ -5,6 +5,7 @@ import "./BlockManager.sol";
 import "./TokenManager.sol";
 
 contract PlayerManager {
+    TokenManager public tokenManager;
     struct Player {
         bool hasJoined;
         bool hasClue;
@@ -21,6 +22,7 @@ contract PlayerManager {
     event PlayerMoved(address player, uint x, uint y);
     event CluePurchased(address player);
 
+    // JOIN
     function joinGame(address _player) external {
         require(!players[_player].hasJoined, "Player already joined");
         require(totalPlayers < 30, "Game is full");
@@ -32,6 +34,7 @@ contract PlayerManager {
         emit PlayerJoined(_player);
     }
 
+    // MOVE
     function movePlayer(address _player, string memory _direction, BlockManager blockManager) external {
         require(players[_player].hasJoined, "Player not joined");
         require(players[_player].stepsCount < 15, "Player has exceeded max steps!");
@@ -56,27 +59,13 @@ contract PlayerManager {
         }
         require(newx < blockManager.GRID_SIZE() && newy < blockManager.GRID_SIZE(), "Out of bounds");
 
-        if (blockManager.checkTreasure(newx, newy)) {
-            revert("Player found treasure");
-        } else if (blockManager.checkSupportPackage(newx, newy)) {
-            revert("Player found support package");
-        } else {
-            players[_player].x = newx;
-            players[_player].y = newy;
-            players[_player].stepsCount++;
-            emit PlayerMoved(_player, newx, newy);
-        }
+        players[_player].x = newx;
+        players[_player].y = newy;
+        players[_player].stepsCount++;
     }
-
-    function findLocation(address _player) public view returns (uint256 x, uint256 y) {
-        Player memory player = players[_player];
-        require(player.hasJoined, "Player has not joined the game");
-
-        x = player.x;
-        y = player.y;
-    }
-
-    function buyClue(address _player, TokenManager tokenManager) external {
+    
+    // CLUE
+    function buyClue(address _player) external payable {
         require(players[_player].hasJoined, "Player not joined");
         require(!players[_player].hasClue, "Player already has a clue");
 
@@ -89,7 +78,16 @@ contract PlayerManager {
         emit CluePurchased(_player);
     }
 
+    // GET
     function getTotalPlayers() public view returns (uint256) {
         return totalPlayers;
+    }
+    
+    function findLocation(address _player) public view returns (uint256 x, uint256 y) {
+        Player memory player = players[_player];
+        require(player.hasJoined, "Player has not joined the game");
+
+        x = player.x;
+        y = player.y;
     }
 }

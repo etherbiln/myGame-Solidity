@@ -24,8 +24,11 @@ Each player navigates the virtual world, using **clues** and **strategies** to l
 3. **Player Movement:** Players navigate the game world using the `movePlayer` function.
 4. **Clue Purchasing:** Players can purchase clues using the `buyClue` function to assist in locating the treasure.
 
+---
 
-### ROADMAP
+### 🗺️ Roadmap
+
+Every step we take together paves a secure and steady path to the mainnet. We’re moving forward with confidence, feeling the success close at hand.
 
 ![Example](./images/roadmap.png)
 
@@ -33,15 +36,14 @@ Each player navigates the virtual world, using **clues** and **strategies** to l
 
 ### 🚀 Compile and Deploy Smart Contracts
 
-```sh
 # Project Setup
 
 To ensure the project runs correctly, you need to create a `.env` file with the following information:
 
 This file should contain your private key and Infura project ID. Make sure to replace `your_private_key_here` and `your_infura_project_id_here` with your actual values.
-```
 
-Compile the smart contracts by running the following command:
+
+# Compile the smart contracts by running the following command:
 
 ```sh
 npx hardhat compile
