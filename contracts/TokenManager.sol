@@ -8,9 +8,9 @@ contract TokenManager {
     MyToken public token;
     PlayerManager public player;
 
-    address ownerGameAddress = 0xAC0775EA1214Dd83c9e9951e6C476605d11ECEF6;
+    uint256 public clueCost = 10;
+    address public ownerGameAddress = 0xAC0775EA1214Dd83c9e9951e6C476605d11ECEF6;
     
-    uint256 public clueCost;
     uint256 public constant TREASURE_REWARD = 5000 * 10**18; // 5000 token, 18 decimal
     uint256 public constant SUPPORT_PACKAGE_REWARD = 500 * 10**18; // 500 token, 18 decimal
 
@@ -34,12 +34,5 @@ contract TokenManager {
 
         // Support package bulunduğunda ödül olarak 500 token gönder
         require(token.transfer(_player, SUPPORT_PACKAGE_REWARD), "Support package reward transfer failed");
-    }
-
-    //-
-    function purchaseClue(address _player) external payable {
-        require(_player != address(0), "Invalid player address");
-        require(token.allowance(_player, address(this)) >= clueCost, "Allowance too low");
-        require(token.transferFrom(_player, ownerGameAddress, clueCost), "Clue purchase failed");
     }
 }

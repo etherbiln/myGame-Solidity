@@ -42,8 +42,8 @@ contract TreasureHuntGame is Ownable {
         playerManager.movePlayer(msg.sender, _direction, blockManager);
     }
 
-    function buyClue() external payable onlyDuringGame {
-        playerManager.buyClue(msg.sender);
+    function buyClue() external onlyDuringGame {
+        playerManager.buyClue();
     }
 
     // CHECK
@@ -56,16 +56,17 @@ contract TreasureHuntGame is Ownable {
     }
     
     function findLocation() public view returns (uint256 x, uint256 y) {
-        return playerManager.findLocation(msg.sender);
+        (x, y) = playerManager.findLocation(msg.sender);
+        return (x, y);
     }
 
     // CLAIMS
     
-    function claimSupportPackage(address _player) public payable  {
+    function claimSupportPackage(address _player) public {
         tokenManager.claimSupportPackage(_player);
     }
     
-    function claimTreasure(address _player) public payable  {
+    function claimTreasure(address _player) public {
         tokenManager.claimTreasure(_player); 
     }
     

@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -6,7 +7,6 @@ import "contracts/PlayerManager.sol";
 contract BlockManager {
     uint256 public constant GRID_SIZE = 7;
     uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE;
-    PlayerManager public playerManager;
 
     struct Block {
         bool isTreasure;
@@ -26,7 +26,7 @@ contract BlockManager {
         createSupportPackage();
     }
 
-    // CREATE
+    // CREATE Chainlink can be added for random number generation!
     function createTreasure() private {
         for (uint256 i = 0; i < 5; i++) {
             uint256 x;
@@ -34,8 +34,8 @@ contract BlockManager {
             uint256 position;
 
             do {
-                x = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, i))) % GRID_SIZE; // or block.difficulty
-                y = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, x, i))) % GRID_SIZE;
+                x = random(i) % GRID_SIZE;
+                y = random(x + i) % GRID_SIZE;
                 position = x * GRID_SIZE + y;
             } while (blocks[position].isTreasure); // Ensure unique positions
 
@@ -50,8 +50,8 @@ contract BlockManager {
             uint256 position;
 
             do {
-                x = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, i))) % GRID_SIZE;
-                y = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender, x, i))) % GRID_SIZE;
+                x = random(i) % GRID_SIZE;
+                y = random(x + i) % GRID_SIZE;
                 position = x * GRID_SIZE + y;
             } while (blocks[position].isSupportPackage); // Ensure unique positions
 
@@ -59,23 +59,37 @@ contract BlockManager {
         }
     }
 
-    // CHECK
-    function checkSupportPackage() public view returns (bool) {
-        (uint256 playerX, uint256 playerY) = playerManager.findLocation(msg.sender);
-        uint256 blockIndex = playerX * GRID_SIZE + playerY;
+    function random(uint256 salt) private view returns (uint256 result) {
+        assembly {
+            let data := mload(0x40)
+            mstore(data, timestamp())
+            mstore(add(data, 0x20), prevrandao())
+            mstore(add(data, 0x40), caller())
+            mstore(add(data, 0x60), salt) // salt değeri
 
-        return blocks[blockIndex].isSupportPackage;        
+            // keccak256 ile hash'le ve GRID_SIZE ile mod al
+            result := mod(keccak256(data, 0x80), GRID_SIZE)
+        }
     }
 
-    function checkTreasure() public view returns (bool) {
+    // CHECK
+    function checkFind() public view returns(uint256){
+        PlayerManager  playerManager;
         (uint256 playerX, uint256 playerY) = playerManager.findLocation(msg.sender);
-        uint256 blockIndex = playerX * GRID_SIZE + playerY;
+        return  playerX * GRID_SIZE + playerY;
+    }
 
-        return blocks[blockIndex].isTreasure;
+    function checkSupportPackage() public view returns (bool) {
+        return blocks[checkFind()].isSupportPackage;        
+    }
+
+    function checkTreasure() public view returns (bool)  {
+        return blocks[checkFind()].isTreasure;
     }
 
     // GET
-    function getBlock() public view returns (Block memory) {
+    function getBlock() public view returns  (Block memory) {
+        PlayerManager  playerManager;
         (uint256 playerX, uint256 playerY) =  playerManager.findLocation(msg.sender);
         uint256 blockIndex = playerX * GRID_SIZE + playerY;
         return blocks[blockIndex];
@@ -85,4 +99,7 @@ contract BlockManager {
         uint256 blockIndex = x * GRID_SIZE + y;
         return blocks[blockIndex];
     }
+    
+    // MODIFIERS
+
 }

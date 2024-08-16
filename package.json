@@ -1,14 +1,14 @@
 {
-  "name": "mygamewithsolidity",
+  "name": "treasurehuntgame",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Yakup Bilen",
   "license": "ISC",
-  "description": "",
+  "description": "TreasureHuntGame is a thrilling decentralized, blockchain-based treasure hunting adventure where players compete to find hidden treasures within a vast, mysterious virtual world.",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomiclabs/hardhat-waffle": "^2.0.6",
@@ -20,6 +20,7 @@
     "hardhat": "^2.22.6"
   },
   "dependencies": {
+    "@chainlink/contracts": "^1.2.0",
     "dotenv": "^16.4.5"
   }
 }

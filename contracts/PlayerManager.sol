@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import "./BlockManager.sol";
 import "./TokenManager.sol";
+import "contracts/token.sol";
 
-contract PlayerManager {
-    TokenManager public tokenManager;
+contract PlayerManager {    
     struct Player {
         bool hasJoined;
         bool hasClue;
@@ -63,17 +63,25 @@ contract PlayerManager {
         players[_player].y = newy;
         players[_player].stepsCount++;
     }
-    
+
     // CLUE
-    function buyClue(address _player) external payable {
+    function buyClue() external {
+        address _player = msg.sender;
+        TokenManager  tokenManager;
+        
         require(players[_player].hasJoined, "Player not joined");
         require(!players[_player].hasClue, "Player already has a clue");
 
-        // Update state variable before external call
+        uint256 clueCost = tokenManager.clueCost(); 
+        address ownerAddress = tokenManager.ownerGameAddress();
+
         players[_player].hasClue = true;
 
-        // Perform the external call after state update
-        tokenManager.purchaseClue(_player);
+        // Ensure the player has sufficient allowance for the transfer
+        require(tokenManager.token().allowance(_player, address(this)) >= clueCost, "Allowance too low");
+
+        // Perform the token transfer
+        require(tokenManager.token().transferFrom(_player, ownerAddress, clueCost), "Clue purchase failed");
 
         emit CluePurchased(_player);
     }
