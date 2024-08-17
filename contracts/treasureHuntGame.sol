@@ -11,25 +11,22 @@ contract TreasureHuntGame is Ownable {
     BlockManager public blockManager;
     TokenManager public tokenManager;
 
-    uint256 public totalPlayers;
     uint256 public gameStartTime;
-    uint256 public gameDuration;
+    uint256 public gameDuration = 10000; // end
 
     address public authorizedAddress = msg.sender;  // New variable to store the authorized address
 
     event GameStarted(uint256 startTime);
 
-    constructor(address _tokenAddress, uint256 _clueCost, uint256 _gameDuration) Ownable(authorizedAddress) { // need change wen deploy
+    // Constructor
+    constructor() Ownable(authorizedAddress) {
         playerManager = new PlayerManager();
         blockManager = new BlockManager();
-        tokenManager = new TokenManager(_tokenAddress, _clueCost);
-        
-        gameDuration = _gameDuration;
+        tokenManager = new TokenManager(playerManager,blockManager);
     }
 
     function joinGame() external {
         playerManager.joinGame(msg.sender);
-        totalPlayers++;
     }
 
     function startGame() external onlyAuthorized {
@@ -39,34 +36,39 @@ contract TreasureHuntGame is Ownable {
     }
 
     function movePlayer(string memory _direction) external  onlyDuringGame {
-        playerManager.movePlayer(msg.sender, _direction, blockManager);
+        playerManager.movePlayer(msg.sender, _direction);
     }
 
-    function buyClue() external onlyDuringGame {
-        playerManager.buyClue();
-    }
+    // function buyClue() external onlyDuringGame {
+    //     tokenManager.buyClue();
+    // }
 
     // CHECK
-    function checkTreasure() public view {
-        require(blockManager.checkTreasure(), "No treasure at this location");
-    }
-
-    function checkSupportPackage() public view {
-        require(blockManager.checkSupportPackage(), "No support package at this location");
-    }
     
-    function findLocation() public view returns (uint256 x, uint256 y) {
-        (x, y) = playerManager.findLocation(msg.sender);
+    function findLocation(address _player) public view returns (uint256 x, uint256 y) {
+        (x, y) = playerManager.findLocation(_player);
         return (x, y);
     }
 
-    // CLAIMS
+    function checkSupportPackage() public  view returns(bool) {
+        return blockManager.checkSupportPackage();
     
-    function claimSupportPackage(address _player) public {
+    }
+    
+    function checkTreasure() public view returns(bool) {
+        return blockManager.checkTreasure();
+    }
+
+    // --- 
+
+    // CLAIMS
+    function claimSupportPackage(address _player) external {
+        require(checkSupportPackage());
         tokenManager.claimSupportPackage(_player);
     }
     
-    function claimTreasure(address _player) public {
+    function claimTreasure(address _player) external {
+        require(checkTreasure());
         tokenManager.claimTreasure(_player); 
     }
     
@@ -74,6 +76,10 @@ contract TreasureHuntGame is Ownable {
 
     function getTotalPlayers() public view returns (uint256) {
         return playerManager.getTotalPlayers();
+    }
+
+    function getShowPlayer() public view returns(address[] memory) {
+        return playerManager.showPlayers();
     }
 
     /// SET

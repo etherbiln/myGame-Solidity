@@ -1,10 +1,10 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "contracts/PlayerManager.sol";
+import "./PlayerManager.sol";
 
 contract BlockManager {
+    PlayerManager public playerManager;     
     uint256 public constant GRID_SIZE = 7;
     uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE;
 
@@ -15,44 +15,39 @@ contract BlockManager {
 
     mapping(uint256 => Block) public blocks;
 
-    constructor() {
-        // Initialize blocks with default values if necessary
+    // Constructor
+    constructor(address _playerManager) {
+        playerManager = PlayerManager(_playerManager);
+
+        // Initialize blocks with default values
         for (uint256 i = 0; i < TOTAL_BLOCKS; i++) {
             blocks[i] = Block(false, false);
         }
 
-        // Create treasures and SupportPackage at random locations
+        // Create treasures and Support Packages at random locations
         createTreasure();
         createSupportPackage();
     }
 
-    // CREATE Chainlink can be added for random number generation!
-    function createTreasure() private {
+    // CREATE Chainlink or other randomness can be added for secure random number generation
+    function createTreasure() internal {
         for (uint256 i = 0; i < 5; i++) {
-            uint256 x;
-            uint256 y;
             uint256 position;
 
             do {
-                x = random(i) % GRID_SIZE;
-                y = random(x + i) % GRID_SIZE;
-                position = x * GRID_SIZE + y;
+                position = random(i) % TOTAL_BLOCKS;
             } while (blocks[position].isTreasure); // Ensure unique positions
 
             blocks[position].isTreasure = true;
         }
     }
 
-    function createSupportPackage() private {
+    function createSupportPackage() internal {
         for (uint256 i = 0; i < 5; i++) {
-            uint256 x;
-            uint256 y;
             uint256 position;
 
             do {
-                x = random(i) % GRID_SIZE;
-                y = random(x + i) % GRID_SIZE;
-                position = x * GRID_SIZE + y;
+                position = random(i + 1) % TOTAL_BLOCKS;
             } while (blocks[position].isSupportPackage); // Ensure unique positions
 
             blocks[position].isSupportPackage = true;
@@ -67,16 +62,15 @@ contract BlockManager {
             mstore(add(data, 0x40), caller())
             mstore(add(data, 0x60), salt) // salt değeri
 
-            // keccak256 ile hash'le ve GRID_SIZE ile mod al
-            result := mod(keccak256(data, 0x80), GRID_SIZE)
+            // keccak256 ile hash'le ve TOTAL_BLOCKS ile mod al
+            result := keccak256(data, 0x80)
         }
     }
 
     // CHECK
-    function checkFind() public view returns(uint256){
-        PlayerManager  playerManager;
+    function checkFind() public view returns (uint256) {
         (uint256 playerX, uint256 playerY) = playerManager.findLocation(msg.sender);
-        return  playerX * GRID_SIZE + playerY;
+        return playerX * GRID_SIZE + playerY;
     }
 
     function checkSupportPackage() public view returns (bool) {
@@ -88,18 +82,14 @@ contract BlockManager {
     }
 
     // GET
-    function getBlock() public view returns  (Block memory) {
-        PlayerManager  playerManager;
-        (uint256 playerX, uint256 playerY) =  playerManager.findLocation(msg.sender);
+    function getPlayerBlockNumber() public view returns (Block memory) {
+        (uint256 playerX, uint256 playerY) = playerManager.findLocation(msg.sender);
         uint256 blockIndex = playerX * GRID_SIZE + playerY;
         return blocks[blockIndex];
     }
 
-    function getBlock(uint256 x,uint256 y) public view returns (Block memory) {
+    function getPlayerBlockNumberlock(uint256 x, uint256 y) public view returns (Block memory) {
         uint256 blockIndex = x * GRID_SIZE + y;
         return blocks[blockIndex];
     }
-    
-    // MODIFIERS
-
 }

@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./BlockManager.sol";
-import "./TokenManager.sol";
-import "contracts/token.sol";
-
-contract PlayerManager {    
+contract PlayerManager {        
     struct Player {
         bool hasJoined;
         bool hasClue;
@@ -14,13 +10,16 @@ contract PlayerManager {
         uint stepsCount;
     }
 
-    mapping(address => Player) public players;
     address[] public playerAddresses;  // Store player addresses in an array
     uint256 public totalPlayers;  // Track total players
 
+    mapping(address => Player) public players;
+
     event PlayerJoined(address player);
     event PlayerMoved(address player, uint x, uint y);
-    event CluePurchased(address player);
+
+    // Constructor
+    constructor() {}
 
     // JOIN
     function joinGame(address _player) external {
@@ -33,9 +32,14 @@ contract PlayerManager {
         
         emit PlayerJoined(_player);
     }
+    
+    // Show all players
+    function showPlayers() public view returns(address[] memory) {
+        return playerAddresses;
+    }
 
     // MOVE
-    function movePlayer(address _player, string memory _direction, BlockManager blockManager) external {
+    function movePlayer(address _player, string memory _direction) external {
         require(players[_player].hasJoined, "Player not joined");
         require(players[_player].stepsCount < 15, "Player has exceeded max steps!");
 
@@ -57,33 +61,15 @@ contract PlayerManager {
         } else {
             revert("Invalid direction");
         }
-        require(newx < blockManager.GRID_SIZE() && newy < blockManager.GRID_SIZE(), "Out of bounds");
+
+        // Ensure new coordinates are within bounds
+        // require(newx < BlockManager.GRID_SIZE() && newy < BlockManager.GRID_SIZE(), "Out of bounds");
 
         players[_player].x = newx;
         players[_player].y = newy;
         players[_player].stepsCount++;
-    }
 
-    // CLUE
-    function buyClue() external {
-        address _player = msg.sender;
-        TokenManager  tokenManager;
-        
-        require(players[_player].hasJoined, "Player not joined");
-        require(!players[_player].hasClue, "Player already has a clue");
-
-        uint256 clueCost = tokenManager.clueCost(); 
-        address ownerAddress = tokenManager.ownerGameAddress();
-
-        players[_player].hasClue = true;
-
-        // Ensure the player has sufficient allowance for the transfer
-        require(tokenManager.token().allowance(_player, address(this)) >= clueCost, "Allowance too low");
-
-        // Perform the token transfer
-        require(tokenManager.token().transferFrom(_player, ownerAddress, clueCost), "Clue purchase failed");
-
-        emit CluePurchased(_player);
+        emit PlayerMoved(_player, newx, newy);
     }
 
     // GET

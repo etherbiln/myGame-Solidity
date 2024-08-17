@@ -4,13 +4,10 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MyToken is ERC20 {
+    uint256 public constant INITIAL_SUPPLY = 100_000_000 * 10**18;
     
-    constructor(uint256 initialSupply) ERC20("MyToken", "MTK") {
-        _mint(msg.sender, initialSupply);
-    }
-
-    function mint(address to, uint256 amount) public {
-        _mint(to, amount);
+    constructor(address _initialAddress) ERC20("MyToken", "MTK") {
+        _mint(_initialAddress, INITIAL_SUPPLY);
     }
 
     function burn(uint256 amount) public {
