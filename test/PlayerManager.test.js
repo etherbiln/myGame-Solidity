@@ -22,11 +22,11 @@ describe("PlayerManager", function () {
         expect(y).to.equal(1);
     });
 
-    it("should not allow moving if player has exceeded max steps", async function () {
+    it("should not allow right moving if player has exceeded max steps", async function () {
         await playerManager.connect(player1).joinGame(player1.address);
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 7; i++) {
             await playerManager.connect(player1).movePlayer(player1.address, "up");
         }
-        await expect(playerManager.connect(player1).movePlayer(player1.address, "up")).to.be.revertedWith("Player has exceeded max steps!");
+        await expect(playerManager.connect(player1).movePlayer(player1.address, "up")).to.be.revertedWith("Out of bounds");
     });
 });

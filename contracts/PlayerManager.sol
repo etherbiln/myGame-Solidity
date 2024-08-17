@@ -49,24 +49,23 @@ contract PlayerManager {
         uint256 y = players[_player].y;
         uint256 newx = x;
         uint256 newy = y;
+        
 
         bytes32 directionHash = keccak256(abi.encodePacked(_direction));
 
         if (directionHash == keccak256(abi.encodePacked("up"))) {
-            newy = y + 1;
+            require((newy = y + 1) <=  7, "Out of bounds");
         } else if (directionHash == keccak256(abi.encodePacked("down"))) {
-            newy = y - 1;
+            require((newy = y - 1) >= 0, "Out of bounds");
         } else if (directionHash == keccak256(abi.encodePacked("left"))) {
-            newx = x - 1;
+            require((newx = x - 1) >= 0, "Out of bounds");
         } else if (directionHash == keccak256(abi.encodePacked("right"))) {
-            newx = x + 1;
+            require((newx = x + 1) <= 7, "Out of bounds");
         } else {
             revert("Invalid direction");
         }
 
         // Ensure new coordinates are within bounds
-        require(newx < GRID_SIZE && newy < GRID_SIZE, "Out of bounds");
-
         players[_player].x = newx;
         players[_player].y = newy;
         players[_player].stepsCount++;

@@ -19,8 +19,10 @@ async function setupContracts() {
     await tokenManager.deployed();
 
     // MyToken'ı dağıtıyoruz
+    const initialAddress = "0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d"; // Corrected format
     const MyToken = await ethers.getContractFactory("MyToken");
-    const myToken = await MyToken.deploy();
+    const myToken = await MyToken.deploy(initialAddress);
+
     await myToken.deployed();
 
     // Son olarak TreasureHuntGame'i dağıtıyoruz

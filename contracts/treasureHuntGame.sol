@@ -23,11 +23,13 @@ contract TreasureHuntGame is Ownable {
     event TreasureClaimed(address indexed player);
 
     // Constructor
-    constructor() Ownable(authorizedAddress) {
-        playerManager = new PlayerManager();
-        blockManager = new BlockManager(address(playerManager));
-        tokenManager = new TokenManager(playerManager, blockManager);
+    constructor(address _playerManager, address _blockManager, address _tokenManager, address _token) Ownable(authorizedAddress) {
+        playerManager = PlayerManager(_playerManager);
+        blockManager = BlockManager(_blockManager);
+        tokenManager = TokenManager(_tokenManager);
+        token = MyToken(_token);
     }
+
 
     // Game
     function joinGame(address _player) external onlySender(_player) {
