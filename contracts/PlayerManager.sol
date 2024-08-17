@@ -10,8 +10,10 @@ contract PlayerManager {
         uint stepsCount;
     }
 
-    address[] public playerAddresses;  // Store player addresses in an array
-    uint256 public totalPlayers;  // Track total players
+    address[] public playerAddresses;
+    uint256 public totalPlayers; 
+    uint256 public constant GRID_SIZE = 7;
+
 
     mapping(address => Player) public players;
 
@@ -63,7 +65,7 @@ contract PlayerManager {
         }
 
         // Ensure new coordinates are within bounds
-        // require(newx < BlockManager.GRID_SIZE() && newy < BlockManager.GRID_SIZE(), "Out of bounds");
+        require(newx < GRID_SIZE && newy < GRID_SIZE, "Out of bounds");
 
         players[_player].x = newx;
         players[_player].y = newy;

@@ -10,23 +10,29 @@ contract TreasureHuntGame is Ownable {
     PlayerManager public playerManager;
     BlockManager public blockManager;
     TokenManager public tokenManager;
+    MyToken public token;
 
     uint256 public gameStartTime;
     uint256 public gameDuration = 10000; // end
-
     address public authorizedAddress = msg.sender;  // New variable to store the authorized address
 
     event GameStarted(uint256 startTime);
+    event PlayerJoined(address indexed player);
+    event PlayerMoved(address indexed player, string direction);
+    event SupportPackageClaimed(address indexed player);
+    event TreasureClaimed(address indexed player);
 
     // Constructor
     constructor() Ownable(authorizedAddress) {
         playerManager = new PlayerManager();
-        blockManager = new BlockManager();
-        tokenManager = new TokenManager(playerManager,blockManager);
+        blockManager = new BlockManager(address(playerManager));
+        tokenManager = new TokenManager(playerManager, blockManager);
     }
 
-    function joinGame() external {
-        playerManager.joinGame(msg.sender);
+    // Game
+    function joinGame(address _player) external onlySender(_player) {
+        playerManager.joinGame(_player);
+        emit PlayerJoined(_player);
     }
 
     function startGame() external onlyAuthorized {
@@ -35,73 +41,48 @@ contract TreasureHuntGame is Ownable {
         emit GameStarted(gameStartTime);
     }
 
-    function movePlayer(string memory _direction) external  onlyDuringGame {
-        playerManager.movePlayer(msg.sender, _direction);
+    function movePlayer(address _player, string memory _direction) external onlySender(_player) onlyDuringGame {
+        playerManager.movePlayer(_player, _direction);
+        emit PlayerMoved(_player, _direction);
     }
 
-    // function buyClue() external onlyDuringGame {
-    //     tokenManager.buyClue();
-    // }
+    // Check
+    function checkSupportPackage(address _player) public onlySender(_player) view returns (bool) {
+        return blockManager.checkSupportPackage(_player);
+    }
 
-    // CHECK
-    
+    function checkTreasure(address _player) public onlySender(_player) view returns (bool) {
+        return blockManager.checkTreasure(_player);
+    }
+
+    // Claims
+    function claimSupportPackage(address _player) external onlySender(_player) {
+        require(blockManager.checkSupportPackage(_player));
+        tokenManager.claimSupportPackage(_player);
+        emit SupportPackageClaimed(_player);
+    }
+
+    function claimTreasure(address _player) external onlySender(_player) {
+        require(blockManager.checkTreasure(_player));
+        tokenManager.claimTreasure(_player);
+        emit TreasureClaimed(_player);
+    }
+
+    // Get
+    function getTotalPlayers() public view returns (uint256) {
+        return playerManager.getTotalPlayers();
+    }
+
+    function getShowPlayer() public view returns (address[] memory) {
+        return playerManager.showPlayers();
+    }
+
     function findLocation(address _player) public view returns (uint256 x, uint256 y) {
         (x, y) = playerManager.findLocation(_player);
         return (x, y);
     }
 
-    function checkSupportPackage() public  view returns(bool) {
-        return blockManager.checkSupportPackage();
-    
-    }
-    
-    function checkTreasure() public view returns(bool) {
-        return blockManager.checkTreasure();
-    }
-
-    // --- 
-
-    // CLAIMS
-    function claimSupportPackage(address _player) external {
-        require(checkSupportPackage());
-        tokenManager.claimSupportPackage(_player);
-    }
-    
-    function claimTreasure(address _player) external {
-        require(checkTreasure());
-        tokenManager.claimTreasure(_player); 
-    }
-    
-    /// GET
-
-    function getTotalPlayers() public view returns (uint256) {
-        return playerManager.getTotalPlayers();
-    }
-
-    function getShowPlayer() public view returns(address[] memory) {
-        return playerManager.showPlayers();
-    }
-
-    /// SET
-
-    function setPlayerManager(address _playerManager) external onlyOwner {
-        playerManager = PlayerManager(_playerManager);
-    }
-
-    function setBlockManager(address _blockManager) external onlyOwner {
-        blockManager = BlockManager(_blockManager);
-    }
-
-    function setTokenManager(address _tokenManager) external onlyOwner {
-        tokenManager = TokenManager(_tokenManager);
-    }
-
-    function setAuthorizedAddress(address _authorizedAddress) external onlyOwner {
-        authorizedAddress = _authorizedAddress;
-    }
-
-    /// MODIFIER
-
+    // Modifiers
     modifier onlyDuringGame() {
         require(block.timestamp <= gameStartTime + gameDuration, "Game is over");
         _;
@@ -109,6 +90,11 @@ contract TreasureHuntGame is Ownable {
 
     modifier onlyAuthorized() {
         require(msg.sender == authorizedAddress, "Not authorized");
+        _;
+    }
+
+    modifier onlySender(address _player) {
+        require(_player == msg.sender, "Sender is not the player");
         _;
     }
 }

@@ -19,7 +19,6 @@ contract BlockManager {
     constructor(address _playerManager) {
         playerManager = PlayerManager(_playerManager);
 
-        // Initialize blocks with default values
         for (uint256 i = 0; i < TOTAL_BLOCKS; i++) {
             blocks[i] = Block(false, false);
         }
@@ -36,7 +35,7 @@ contract BlockManager {
 
             do {
                 position = random(i) % TOTAL_BLOCKS;
-            } while (blocks[position].isTreasure); // Ensure unique positions
+            } while (blocks[position].isTreasure);
 
             blocks[position].isTreasure = true;
         }
@@ -48,7 +47,7 @@ contract BlockManager {
 
             do {
                 position = random(i + 1) % TOTAL_BLOCKS;
-            } while (blocks[position].isSupportPackage); // Ensure unique positions
+            } while (blocks[position].isSupportPackage); 
 
             blocks[position].isSupportPackage = true;
         }
@@ -60,35 +59,34 @@ contract BlockManager {
             mstore(data, timestamp())
             mstore(add(data, 0x20), prevrandao())
             mstore(add(data, 0x40), caller())
-            mstore(add(data, 0x60), salt) // salt değeri
+            mstore(add(data, 0x60), salt)
 
-            // keccak256 ile hash'le ve TOTAL_BLOCKS ile mod al
             result := keccak256(data, 0x80)
         }
     }
 
     // CHECK
-    function checkFind() public view returns (uint256) {
-        (uint256 playerX, uint256 playerY) = playerManager.findLocation(msg.sender);
+    function checkFind(address _player) public view returns (uint256) {
+        (uint256 playerX, uint256 playerY) = playerManager.findLocation(_player);
         return playerX * GRID_SIZE + playerY;
     }
 
-    function checkSupportPackage() public view returns (bool) {
-        return blocks[checkFind()].isSupportPackage;        
+    function checkSupportPackage(address _player) public view returns (bool) {
+        return blocks[checkFind(_player)].isSupportPackage;        
     }
 
-    function checkTreasure() public view returns (bool)  {
-        return blocks[checkFind()].isTreasure;
+    function checkTreasure(address _player) public view returns (bool)  {
+        return blocks[checkFind(_player)].isTreasure;
     }
 
     // GET
-    function getPlayerBlockNumber() public view returns (Block memory) {
+    function getPlayerBlockIndex() public view returns (Block memory) {
         (uint256 playerX, uint256 playerY) = playerManager.findLocation(msg.sender);
         uint256 blockIndex = playerX * GRID_SIZE + playerY;
         return blocks[blockIndex];
     }
 
-    function getPlayerBlockNumberlock(uint256 x, uint256 y) public view returns (Block memory) {
+    function getPlayerBlockIndex(uint256 x, uint256 y) public view returns (Block memory) {
         uint256 blockIndex = x * GRID_SIZE + y;
         return blocks[blockIndex];
     }
