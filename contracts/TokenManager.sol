@@ -36,7 +36,7 @@ contract TokenManager {
         require(SUPPORT_PACKAGE_REWARD <= MAX_REWARD_LIMIT, "Support package reward exceeds limit");
         require(token.transfer(_player, TREASURE_REWARD), "Treasure reward transfer failed");
 
-        emit TreasureClaimed(_player, TREASURE_REWARD); // Emit event
+        emit TreasureClaimed(_player, TREASURE_REWARD);
     }
 
     function claimSupportPackage(address _player) external {
@@ -45,7 +45,7 @@ contract TokenManager {
         require(token.balanceOf(address(this)) >= SUPPORT_PACKAGE_REWARD, "Not enough tokens in contract");
         require(token.transfer(_player, SUPPORT_PACKAGE_REWARD), "Support package reward transfer failed");
 
-        emit SupportPackageClaimed(_player, SUPPORT_PACKAGE_REWARD); // Emit event
+        emit SupportPackageClaimed(_player, SUPPORT_PACKAGE_REWARD);
     }
 
     function withdrawToken() public onlyOwner {
@@ -68,5 +68,4 @@ contract TokenManager {
         require(ownerGameAddress ==msg.sender);
         _;
     }
-
 }
