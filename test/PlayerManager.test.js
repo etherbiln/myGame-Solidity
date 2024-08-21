@@ -17,7 +17,7 @@ describe("PlayerManager", function () {
     it("should move player correctly", async function () {
         await playerManager.connect(player1).joinGame(player1.address);
         await playerManager.connect(player1).movePlayer(player1.address, "up");
-        const { x, y } = await playerManager.findLocation(player1.address);
+        const { x, y } = await playerManager.findLocation(player1.address); 
         expect(x).to.equal(0);
         expect(y).to.equal(1);
     });
