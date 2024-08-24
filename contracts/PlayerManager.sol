@@ -1,65 +1,75 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract PlayerManager {        
+contract PlayerManager {
+    uint256 public constant GRID_SIZE = 10;
+
     struct Player {
         bool hasJoined;
-        bool hasClue;
+        uint256 paid;
         uint x;
         uint y;
         uint stepsCount;
     }
 
-    address[]  public playerAddresses;
-    uint256 public totalPlayers; 
-    uint256 public constant GRID_SIZE = 7;
-    address public authorizedAddress = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d;
+    address[] public playerAddresses;
+    uint256 public totalPlayers;
 
-
+    address public treasureHuntAddress;
+    address public setOwner = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+    
     mapping(address => Player) public players;
+    mapping(address => bool) private playerExists;
 
     event PlayerJoined(address player);
     event PlayerLeave(address player);
     event PlayerMoved(address player, uint x, uint y);
+    event GameStarted(uint256 startTime);
 
     // Constructor
     constructor() {}
 
     // JOIN
-    function joinGame(address _player) external onlyPlayer(_player) returns(bool) {
+    function joinGame(address _player,uint256 _amount) external onlyTreasureHunt returns(bool) {
         require(!players[_player].hasJoined, "Player already joined");
         require(totalPlayers < 30, "Game is full");
         
-        players[_player] = Player(true, false, 0, 0, 0);
+        players[_player] = Player(true,0, 0, 0, 0);
         playerAddresses.push(_player);
+        playerExists[_player] = true;
         totalPlayers++;
+
+        players[_player].paid = _amount;
         
         emit PlayerJoined(_player);
+
         return true;
     }
+
     function leaveGame(address _player) public onlyPlayer(_player) returns (bool) {
         require(players[_player].hasJoined, "Player does not exist");
         require(totalPlayers > 0, "No players in the game");
 
-        (bool playerFound,uint256 index) = isPlayer(_player);
-        require(playerFound, "Player not found in the array");
-
+        uint256 index = PlayerNumber(_player);
+        
         playerAddresses[index] = playerAddresses[playerAddresses.length - 1];
         playerAddresses.pop();
-
-        players[_player] = Player(false, false, 0, 0, 0);
+        
+        delete players[_player];
+        delete playerExists[_player];
         totalPlayers--;
 
         emit PlayerLeave(_player);
         return true;
     }
 
-   function finishGame() external onlyAuthorized returns (bool) {
+    function finishGame() external onlyTreasureHunt returns (bool) {
         require(totalPlayers > 0, "No players in the game");
         
         for (uint256 i = 0; i < playerAddresses.length; i++) {
             address player = playerAddresses[i];
-            players[player] = Player(false, false, 0, 0, 0);
+            delete players[player];
+            delete playerExists[player];
         }
 
         delete playerAddresses;
@@ -68,32 +78,33 @@ contract PlayerManager {
         return true;
     }
 
-    // MOVE
-    function movePlayer(address _player, string memory _direction) external onlyPlayer(_player)  returns(bool) {
+    function movePlayer(address _player, string memory _direction) external onlyTreasureHunt returns(bool) {
         require(players[_player].hasJoined, "Player not joined");
-        require(players[_player].stepsCount < 15, "Player has exceeded max steps!");
+        require(players[_player].stepsCount < 100, "Player has exceeded max steps!");
 
         uint256 x = players[_player].x;
         uint256 y = players[_player].y;
         uint256 newx = x;
         uint256 newy = y;
-        
 
         bytes32 directionHash = keccak256(abi.encodePacked(_direction));
 
         if (directionHash == keccak256(abi.encodePacked("up"))) {
-            require((newy = y + 1) <=  7, "Out of bounds");
+            require((y + 1) <= GRID_SIZE, "Out of bounds");
+            newy = y + 1;
         } else if (directionHash == keccak256(abi.encodePacked("down"))) {
-            require((newy = y - 1) >= 0, "Out of bounds");
+            require(y >= 1, "Out of bounds");
+            newy = y - 1;
         } else if (directionHash == keccak256(abi.encodePacked("left"))) {
-            require((newx = x - 1) >= 0, "Out of bounds");
+            require(x >= 1, "Out of bounds");
+            newx = x - 1;
         } else if (directionHash == keccak256(abi.encodePacked("right"))) {
-            require((newx = x + 1) <= 7, "Out of bounds");
+            require((x + 1) <= GRID_SIZE, "Out of bounds");
+            newx = x + 1;
         } else {
             revert("Invalid direction");
         }
 
-        // Ensure new coordinates are within bounds
         players[_player].x = newx;
         players[_player].y = newy;
         players[_player].stepsCount++;
@@ -102,40 +113,58 @@ contract PlayerManager {
         return true;
     }
     
-    // Players
-    function showPlayers() public view returns(address[] memory,uint256) {
-        return (playerAddresses,totalPlayers);
+    // Player
+    function showPlayers() public view returns(address[] memory) {
+        return playerAddresses;
     }
 
-    function isPlayer(address _player) public view returns(bool,uint256) {
-        uint256 index;
-        bool playerFound = false;
+    function isPlayer(address _player) public view returns(bool) {
+        return playerExists[_player];
+    }
+    
+    function PlayerNumber(address _player) public onlyPlayer(_player) view returns(uint256) {
         for (uint256 i = 0; i < playerAddresses.length; i++) {
             if (playerAddresses[i] == _player) {
-                index = i;
-                playerFound = true;
-                break;
+                return i;
             }
         }
-        return (playerFound,index);
+        revert("Player not found");
     }
-    function findPlayer(address _player) public view returns (uint256 x, uint256 y) {
+
+    function findPlayer(address _player) public onlyPlayer(_player) view returns (uint256 x, uint256 y) {
         Player memory player = players[_player];
         require(player.hasJoined, "Player has not joined the game");
-
-        x = player.x;
-        y = player.y;
+        return (player.x, player.y);
     }
 
-     modifier onlyAuthorized{
-        require (msg.sender == authorizedAddress);
+    function getTotalPlayers() public view returns(uint256) {
+        return totalPlayers;
+    }
+    
+    // Set
+    function setTreasureHunt(address _treasureHunt) public onlyOwner {
+        treasureHuntAddress = _treasureHunt;
+    }
+
+    // Modifier
+    modifier onlyOwner {
+        require(msg.sender == setOwner, "You are not authorized");
+        _;
+    }
+    
+    modifier onlyTreasureHunt {
+        require(msg.sender == treasureHuntAddress, "You are not TreasureHunt address");
         _;
     }
     
     modifier onlyPlayer(address _player) {
-        require(msg.sender == _player);
-        (bool a,uint b) = isPlayer(_player);
-        require(a);
+        require(playerExists[_player], "You are not a player");
         _;
     }
+
+    modifier onlyFirst(address _player) {
+        require(playerAddresses.length > 0 && playerAddresses[0] == _player, "You are not the first player");
+        _;
+    }
+
 }
