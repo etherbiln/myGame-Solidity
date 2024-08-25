@@ -84,7 +84,6 @@ contract BlockManager {
         return blocks[PlayerIndex(_player)].isTreasure;
     }
 
-
     // Index
     function PlayerIndex(address _player) public view returns (uint256) {
         (uint256 playerX, uint256 playerY) = playerManager.findPlayer(_player);

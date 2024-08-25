@@ -7,12 +7,12 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 
 contract MyToken is ERC20, Ownable, Pausable {
     uint256 public constant INITIAL_SUPPLY = 100_000_000 * 10**18;
-    
-    event Burn(address indexed from, uint256 amount);
 
-    constructor(address _initialAddress) ERC20("MyToken", "MTK") Ownable(msg.sender) {
+    constructor(address _initialAddress) ERC20("Treasure Hunt", "Hunt") Ownable(msg.sender) {
         _mint(_initialAddress, INITIAL_SUPPLY);
     }
+    
+    event Burn(address indexed from, uint256 amount);
 
     function burn(uint256 amount) external onlyOwner {
         _burn(msg.sender, amount);

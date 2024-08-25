@@ -166,5 +166,4 @@ contract PlayerManager {
         require(playerAddresses.length > 0 && playerAddresses[0] == _player, "You are not the first player");
         _;
     }
-
 }
