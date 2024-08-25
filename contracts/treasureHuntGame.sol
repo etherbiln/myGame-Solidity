@@ -12,12 +12,13 @@ contract TreasureHuntGame is Ownable {
     TokenManager public tokenManager;
     MyToken public token;
 
-    uint256 public gameStartTime;
-    uint256 public gameDuration = 900; // 15 minutes
-    address public authorizedAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
-
-    uint256 public gamePrice;
     uint256 public constant movePrice  = 250*10**18;
+    uint256 public constant minJoinAmount= 200*10**18;
+    uint256 public gameDuration = 900; // 15 minutes
+    uint256 public gameStartTime;
+    uint256 public gamePrice;
+
+    address public authorizedAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
     address public gameAddress = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d; // for tokens
 
     event GameStarted(uint256 startTime);
@@ -43,6 +44,7 @@ contract TreasureHuntGame is Ownable {
     // Game
     function joinGame(address _player, uint256 _amount) external returns (bool) {
         require(_player != address(0), "Invalid player address");
+        require(_amount >= minJoinAmount,"Need more amount! min : 200 18decimal");
 
         if (playerManager.totalPlayers() == 0) {
             gamePrice = _amount;
@@ -50,11 +52,16 @@ contract TreasureHuntGame is Ownable {
             require(_amount >= gamePrice, "Not enough amount!");
         }
 
-
         require(token.balanceOf(_player) >= gamePrice, "Not enough tokens!");
-        require(token.transfer(gameAddress, gamePrice), "Token transfer failed");
+        require(token.approve(address(this), gamePrice), "Approval failed");
+
+        uint256 allowedAmount = token.allowance(_player, address(this));
+        require(allowedAmount >= gamePrice, "Not enough allowance for transfer");
+
+        require(token.transferFrom(_player, gameAddress, gamePrice), "Token transfer failed");
 
         require(playerManager.joinGame(_player, gamePrice));
+        
         emit PlayerJoined(_player);
 
         return true;
@@ -62,10 +69,10 @@ contract TreasureHuntGame is Ownable {
 
     function leaveGame(address _player) external onlyPlayer(_player) {
         require(playerManager.leaveGame(_player), "Player leave failed");
-        
+    
         uint256 refundAmount = gamePrice / 2;
-        require(token.balanceOf(address(this)) >= refundAmount, "Not enough tokens in Treasure Address");
-        require(token.transferFrom(address(this), _player, refundAmount), "Token transfer failed");
+        require(token.balanceOf(address(this)) >= refundAmount, "Not enough tokens in contract");
+        require(token.transfer(_player, refundAmount), "Token transfer failed");
 
         emit PlayerLeft(_player);
     }
@@ -81,7 +88,6 @@ contract TreasureHuntGame is Ownable {
         emit GameStarted(gameStartTime);
     }
 
-
     function finishGame() external onlyAuthorized returns (bool) {
         require(getElapsedTime() >= gameDuration, "Game duration not yet finished");
         gameStartTime = 0;
@@ -91,14 +97,15 @@ contract TreasureHuntGame is Ownable {
         return true;
     }
 
-    // Move
-    function movePlayer(address _player, string memory _direction) external onlyPlayer(_player) onlyDuringGame {
-        require(msg.sender == _player);
+   function movePlayer(address _player, string memory _direction) external onlyPlayer(_player) onlyDuringGame {
         require(token.balanceOf(_player) >= movePrice, "Not enough tokens!");
-        require(token.transfer(gameAddress, movePrice), "Token transfer failed");
-        
-        require(playerManager.movePlayer(_player, _direction), "Move failed");
 
+        uint256 allowedAmount = token.allowance(_player, address(this));
+        require(allowedAmount >= movePrice, "Not enough allowance for transfer");
+        require(token.transferFrom(_player, gameAddress, movePrice), "Token transfer failed");
+
+        require(playerManager.movePlayer(_player, _direction), "Move failed");
+    
         emit PlayerMoved(_player, _direction);
     }
 
@@ -170,6 +177,11 @@ contract TreasureHuntGame is Ownable {
             return 0;
         }
         return block.timestamp - gameStartTime;
+    }
+
+    // Set
+    function setNewAuthorized(address _newauthorized) public onlyAuthorized {
+        authorizedAddress = _newauthorized;
     }
 
     // Modifiers

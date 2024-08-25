@@ -141,9 +141,13 @@ contract PlayerManager {
         return totalPlayers;
     }
     
-    // Set
+    // New authorized
     function setTreasureHunt(address _treasureHunt) public onlyOwner {
         treasureHuntAddress = _treasureHunt;
+    }
+    
+    function setNewOwner(address _newOwner) public onlyOwner {
+        setOwner = _newOwner;
     }
 
     // Modifier

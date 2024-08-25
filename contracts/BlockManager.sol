@@ -5,11 +5,12 @@ import "./PlayerManager.sol";
 
 contract BlockManager {
     PlayerManager public playerManager;
+    
     uint256 public constant GRID_SIZE = 10;
     uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE;
 
-    address public treasureHuntAddress;
     address public setOwner= 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+    address public treasureHuntAddress;
     
     struct Block {
         bool isTreasure;
@@ -18,6 +19,7 @@ contract BlockManager {
 
     mapping(uint256 => Block) private blocks;
 
+    // Constructor
     constructor(address _playerManager) {
         playerManager = PlayerManager(_playerManager);
 
@@ -26,6 +28,7 @@ contract BlockManager {
         }
     }
 
+    // Create
     function createTreasure() external onlyTreasureHunt {
         for (uint256 i = 0; i < 1; i++) {
             uint256 position;
@@ -49,7 +52,7 @@ contract BlockManager {
             blocks[position].isSupportPackage = true;
         }
     }
-
+    // Random
     function random(uint256 salt) private view returns (uint256 result) {
         result = uint256(keccak256(abi.encodePacked(
             block.timestamp,
@@ -59,7 +62,7 @@ contract BlockManager {
             salt
         )));
     }
-    
+    // Blocks
     function resetSupportBlocks() external onlyTreasureHunt returns(bool) { // wen use need creates
         for (uint256 i = 0; i < TOTAL_BLOCKS; i++) {
             blocks[i].isSupportPackage = false;
@@ -90,9 +93,13 @@ contract BlockManager {
         return playerX * GRID_SIZE + playerY;
     }
     
-    // Set
+    // New authorized
     function setTreasureHunt(address _treasureHunt) public onlyOwner {
         treasureHuntAddress = _treasureHunt;
+    }
+    
+    function setNewOwner(address _newOwner) public onlyOwner {
+        setOwner = _newOwner;
     }
 
     // Modifier
