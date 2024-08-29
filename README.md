@@ -22,6 +22,12 @@ Each player navigates the virtual world, using **clues** and **strategies** to l
 
 ## 🎮 How to Play
 
+### Treasure Hunt
+![Example](./images/Treasure.png)
+
+---
+## 🎮 How to Play
+
 ### 1. Joining the Game
 Players can join the game by calling the `joinGame` function. Ensure that you are the sender of the transaction to join.
 
@@ -49,7 +55,9 @@ To claim the treasure, use the `claimTreasure` function if you have found the tr
 ### 8. Leaving the Game
 If you want to leave the game, call the `leaveGame` function. Ensure that you are the player leaving the game.
 
-### Additional Information
+---
+
+## Additional Information
 - **Game Duration:** The game lasts for 15 minutes from the time it is started.The game automatically ends after 15 minutes.
 - **Authorization:** Only the authorized address can start or finish the game.
 - **Modifiers:** Functions are protected by modifiers to ensure that only the appropriate addresses can call them under the correct conditions.
