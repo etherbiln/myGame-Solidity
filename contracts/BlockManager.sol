@@ -9,7 +9,7 @@ contract BlockManager {
     uint256 public constant GRID_SIZE = 10;
     uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE;
 
-    address public setOwner= 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+    address public setOwner= 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d;
     address public treasureHuntAddress;
     
     struct Block {

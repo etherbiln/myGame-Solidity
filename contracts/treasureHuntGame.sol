@@ -12,13 +12,14 @@ contract TreasureHuntGame is Ownable {
     TokenManager public tokenManager;
     MyToken public token;
 
-    uint256 public constant movePrice  = 250*10**18;
-    uint256 public constant minJoinAmount= 200*10**18;
+    uint256 public constant decimal =  10**18;
+    uint256 public constant movePrice  = 250*decimal;
+    uint256 public constant minJoinAmount= 200*decimal;
     uint256 public gameDuration = 900; // 15 minutes
     uint256 public gameStartTime;
     uint256 public gamePrice;
 
-    address public authorizedAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+    address public authorizedAddress = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d;
     address public gameAddress = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d; // for tokens
 
     event GameStarted(uint256 startTime);
@@ -44,12 +45,12 @@ contract TreasureHuntGame is Ownable {
     // Game
     function joinGame(address _player, uint256 _amount) external returns (bool) {
         require(_player != address(0), "Invalid player address");
-        require(_amount >= minJoinAmount,"Need more amount! min : 200 18decimal");
+        require(_amount*decimal >= minJoinAmount,"Need more amount! min : 200");
 
         if (playerManager.totalPlayers() == 0) {
-            gamePrice = _amount;
+            gamePrice = _amount*decimal;
         } else {
-            require(_amount >= gamePrice, "Not enough amount!");
+            require(_amount*decimal >= gamePrice*decimal, "Not enough amount!");
         }
 
         require(token.balanceOf(_player) >= gamePrice, "Not enough tokens!");
