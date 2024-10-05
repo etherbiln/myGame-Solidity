@@ -25,7 +25,7 @@ Each player navigates the virtual world, using **clues** and **strategies** to l
 ### Treasure Hunt
 ![Example](./images/Treasure.png)
 
-- https://excalidraw.com/#json=QKyd0TWaeauVvzY-VB1MF,kCadu1a2aRHwLjebSUom5w
+- https://excalidraw.com/#json=7TE0xcUPvYZYAxOhcBule,bKRAeGvdVEzZdcVLI3lFhA
 
 ---
 ## 🎮 How to Play
