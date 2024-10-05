@@ -140,6 +140,10 @@ contract PlayerManager {
     function getTotalPlayers() public view returns(uint256) {
         return totalPlayers;
     }
+
+    function getTotalPaidPlayer(address _player) public view returns(uint256) {
+        return players[_player].paid;
+    }
     
     // New authorized
     function setTreasureHunt(address _treasureHunt) public onlyOwner {
