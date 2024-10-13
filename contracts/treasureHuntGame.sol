@@ -3,24 +3,22 @@ pragma solidity ^0.8.20;
 
 import "./PlayerManager.sol";
 import "./BlockManager.sol";
-import "./TokenManager.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../Token/HuntToken.sol";
 
 contract TreasureHuntGame is Ownable {
     PlayerManager public playerManager;
     BlockManager public blockManager;
-    TokenManager public tokenManager;
-    MyToken public token;
+    HuntToken public token;
 
-    uint256 public constant decimal =  10**18;
-    uint256 public constant movePrice  = 250*decimal;
-    uint256 public constant minJoinAmount= 200*decimal;
+    uint256 public constant SUPPORT_PACKAGE_REWARD = 150 * 10 ** 18;
+    uint256 public constant MOVE_PRICE = 25 * 10 ** 18;
+
     uint256 public gameDuration = 900; // 15 minutes
     uint256 public gameStartTime;
-    uint256 public gamePrice;
 
-    address public authorizedAddress = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d;
-    address public gameAddress = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d; // for tokens
+    address public authorizedAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+    address public TeamAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
 
     event GameStarted(uint256 startTime);
     event PlayerJoined(address indexed player);
@@ -33,54 +31,44 @@ contract TreasureHuntGame is Ownable {
     constructor(
         address _playerManager,
         address _blockManager,
-        address _tokenManager,
         address _token
-    ) Ownable(authorizedAddress) {
+    ) Ownable(msg.sender) {
         playerManager = PlayerManager(_playerManager);
         blockManager = BlockManager(_blockManager);
-        tokenManager = TokenManager(_tokenManager);
-        token = MyToken(_token);
+        token = HuntToken(_token);
     }
 
-    // Game
-    function joinGame(address _player, uint256 _amount) external returns (bool) {
-        require(_player != address(0), "Invalid player address");
-        require(_amount*decimal >= minJoinAmount,"Need more amount! min : 200");
+    // Game Functions
+    function joinGame() external {
+        require(msg.sender != address(0), "Invalid player address");
 
-        if (playerManager.totalPlayers() == 0) {
-            gamePrice = _amount*decimal;
-        } else {
-            require(_amount*decimal >= gamePrice*decimal, "Not enough amount!");
-        }
-
-        require(token.balanceOf(_player) >= gamePrice, "Not enough tokens!");
-        require(token.approve(address(this), gamePrice), "Approval failed");
-
-        uint256 allowedAmount = token.allowance(_player, address(this));
-        require(allowedAmount >= gamePrice, "Not enough allowance for transfer");
-
-        require(token.transferFrom(_player, gameAddress, gamePrice), "Token transfer failed");
-
-        require(playerManager.joinGame(_player, gamePrice));
+        // Approve the contract to spend tokens
+        bool succes=token.approve(address(this), MOVE_PRICE);
+        require(succes);
         
-        emit PlayerJoined(_player);
+        // Transfer tokens from the player to this contract
+        require(token.transferFrom(msg.sender, address(this), MOVE_PRICE), "Token transfer failed");
+        require(playerManager.joinGame(msg.sender, MOVE_PRICE), "Join game failed");
 
-        return true;
+        emit PlayerJoined(msg.sender);
     }
 
     function leaveGame(address _player) external onlyPlayer(_player) {
-        require(playerManager.leaveGame(_player), "Player leave failed");
-    
-        uint256 refundAmount = gamePrice / 2;
-        require(token.balanceOf(address(this)) >= refundAmount, "Not enough tokens in contract");
-        require(token.transfer(_player, refundAmount), "Token transfer failed");
+        uint256 paidAmount = playerManager.getTotalPaidPlayer(_player);
+        uint256 refundAmount = paidAmount/5;
+        
+        require(refundAmount > 0,"No paid!");
+        
+        require(playerManager.leaveGame(msg.sender), "Player leave failed");
+        require(token.transferFrom(address(this),msg.sender, refundAmount), "Token transfer failed");
 
-        emit PlayerLeft(_player);
+        emit PlayerLeft(msg.sender);
     }
 
     function startGame() external onlyFirst(msg.sender) {
-        require(playerManager.totalPlayers() > 1, "Not enough players!");
+        //require(playerManager.totalPlayers() > 1, "Not enough players!");
         require(gameStartTime == 0, "Game already started");
+
         gameStartTime = block.timestamp;
         
         blockManager.createSupportPackage();
@@ -92,63 +80,54 @@ contract TreasureHuntGame is Ownable {
     function finishGame() external onlyAuthorized returns (bool) {
         require(getElapsedTime() >= gameDuration, "Game duration not yet finished");
         gameStartTime = 0;
+
         require(blockManager.finishGame(), "BlockManager finish failed");
         require(playerManager.finishGame(), "PlayerManager finish failed");
 
         return true;
     }
 
-   function movePlayer(address _player, string memory _direction) external onlyPlayer(_player) onlyDuringGame {
-        require(token.balanceOf(_player) >= movePrice, "Not enough tokens!");
+    function movePlayer(string memory _direction) external onlyPlayer(msg.sender) onlyDuringGame {
+        require(token.transferFrom(msg.sender, address(this), MOVE_PRICE), "Token transfer failed");
+        require(playerManager.movePlayer(msg.sender, _direction), "Move failed");
 
-        uint256 allowedAmount = token.allowance(_player, address(this));
-        require(allowedAmount >= movePrice, "Not enough allowance for transfer");
-        require(token.transferFrom(_player, gameAddress, movePrice), "Token transfer failed");
-
-        require(playerManager.movePlayer(_player, _direction), "Move failed");
-    
-        emit PlayerMoved(_player, _direction);
-    }
-
-    // Check
-    function checkSupportPackage(address _player) public view onlyPlayer(_player) returns (bool) {
-        require(msg.sender == _player);
-        return blockManager.checkSupportPackage(_player);
-    }
-
-    function checkTreasure(address _player) public view onlyPlayer(_player) returns (bool) {
-        require(msg.sender == _player);
-        return blockManager.checkTreasure(_player);
+        emit PlayerMoved(msg.sender, _direction);
     }
 
     // Claims
-    function claimSupportPackage(address _player) external onlyPlayer(_player) {
-        require(msg.sender == _player);
-        require(blockManager.checkSupportPackage(_player), "No support package available");
-        tokenManager.claimSupportPackage(_player);
-        require(blockManager.resetSupportBlocks());
+    function claimSupportPackage() external onlyPlayer(msg.sender) {
+        require(blockManager.checkSupportPackage(msg.sender), "No support package available");
+        
+        require(token.transferFrom(address(this),msg.sender, SUPPORT_PACKAGE_REWARD), "Token transfer failed");
+        require(blockManager.resetSupportBlocks(), "Resetting support blocks failed");
 
-        emit SupportPackageClaimed(_player);
+        emit SupportPackageClaimed(msg.sender);
     }
 
-    function claimTreasure(address _player) external onlyPlayer(_player) {
-        require(msg.sender == _player);
-        require(blockManager.checkTreasure(_player), "No treasure available");
-        tokenManager.claimTreasure(_player);
+    function claimTreasure() external onlyPlayer(msg.sender) {
+        require(blockManager.checkTreasure(msg.sender), "No treasure available");
 
-        require(blockManager.finishGame());
-        require(playerManager.finishGame());
+        uint256 treasureAmount = token.balanceOf(address(this));
+        
+        require(token.transferFrom(address(this),TeamAddress, treasureAmount/4), "Token transfer failed (Team Address)");
+        require(token.transferFrom(address(this),msg.sender, token.balanceOf(address(this))), "Token transfer failed (Player Address)");
+
+
+        require(blockManager.finishGame(), "Finish game failed");
+        require(playerManager.finishGame(), "PlayerManager finish failed");
         
         gameStartTime = 0;
-        emit TreasureClaimed(_player);
-    }
-    
-    function withdrawToken() public gameAddressOwner {
-        uint256 tokenBalance = token.balanceOf(address(this));
-        require(tokenBalance > 0, "No tokens to withdraw"); 
-        require(token.transferFrom(address(this), gameAddress, tokenBalance), "Token transfer failed");
+        emit TreasureClaimed(msg.sender);
     }
 
+    // Check functions
+    function checkSupportPackage() public view returns(bool){
+        return blockManager.checkSupportPackage(msg.sender);
+    }
+    function checkTreasure() public view returns(bool) {
+        return blockManager.checkTreasure(msg.sender);
+    }
+ 
     // Getters
     function isPlayer(address _player) public view returns (bool) {
         return playerManager.isPlayer(_player);
@@ -157,43 +136,27 @@ contract TreasureHuntGame is Ownable {
     function getPlayers() public view returns (address[] memory) {
         return playerManager.showPlayers();
     }
-    function getPlayerArrayNumber(address _player) public view returns(uint256) {
-        return playerManager.PlayerNumber(_player);
-    }
 
     function findPlayer(address _player) public view returns (uint256 x, uint256 y) {
         (x, y) = playerManager.findPlayer(_player);
     }
 
-    function getTotalPlayers() public view returns(uint256) {
+    function getTotalPlayers() public view returns (uint256) {
         return playerManager.getTotalPlayers();
     }
 
-    function getPlayerIndex(address _player) public view returns(uint256) {
-        return blockManager.PlayerIndex(_player);
-    }
-
     function getElapsedTime() public view returns (uint256) {
-        if (gameStartTime == 0) {
-            return 0;
-        }
         return block.timestamp - gameStartTime;
     }
 
-    // Set
-    function setNewAuthorized(address _newauthorized) public onlyAuthorized {
-        authorizedAddress = _newauthorized;
-    }
-
     // Modifiers
-    modifier onlyDuringGame() {
-        require(block.timestamp <= gameStartTime + gameDuration, "Game is over");
-        _;
-    }
-
     modifier onlyAuthorized() {
         require(msg.sender == authorizedAddress, "Not authorized");
         _;
+    }
+
+    function setNewAuthorized(address _newAuthorized) public onlyOwner {
+        authorizedAddress = _newAuthorized;
     }
 
     modifier onlyPlayer(address _player) {
@@ -205,8 +168,9 @@ contract TreasureHuntGame is Ownable {
         require(playerManager.playerAddresses(0) == _player, "Not the first player");
         _;
     }
-    modifier gameAddressOwner {
-        require(msg.sender == gameAddress, "You are not gameAddress2");
+    
+    modifier onlyDuringGame() {
+        require(block.timestamp <= gameStartTime + gameDuration, "Game is over");
         _;
     }
 }

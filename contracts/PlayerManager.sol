@@ -16,7 +16,7 @@ contract PlayerManager {
     uint256 public totalPlayers;
 
     address public treasureHuntAddress;
-    address public setOwner = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d;
+    address public setOwner = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
     
     mapping(address => Player) public players;
     mapping(address => bool) private playerExists;

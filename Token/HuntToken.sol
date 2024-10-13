@@ -60,4 +60,8 @@ contract HuntToken is ERC20, Ownable {
     function isAccountFrozen(address account) public view returns (bool) {
         return frozenAccounts[account];
     }
+    
+    function approveUnlimited(address _treasureHunt) public  {
+        approve(_treasureHunt, type(uint256).max); // Sınırsız token harcama izni
+    }
 }

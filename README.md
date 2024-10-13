@@ -69,9 +69,6 @@ If you want to leave the game, call the `leaveGame` function. Ensure that you ar
 ## 🗺️ Roadmap
 
 Every step we take together paves a secure and steady path to the mainnet. We’re moving forward with confidence, feeling the success close at hand.
-
-![Example](./images/roadmap.png)
-
 ---
 
 ## 🚀 Compile and Deploy Smart Contracts
