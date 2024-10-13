@@ -28,36 +28,6 @@ Each player navigates the virtual world, using **clues** and **strategies** to l
 - https://excalidraw.com/#json=7TE0xcUPvYZYAxOhcBule,bKRAeGvdVEzZdcVLI3lFhA
 
 ---
-## 🎮 How to Play
-
-### 1. Joining the Game
-Players can join the game by calling the `joinGame` function. Ensure that you are the sender of the transaction to join.
-
-### 2. Starting the Game
-The game starts when an authorized address calls the `startGame` function. The game can only be started once.
-
-### 3. Player Movement
-Navigate the game world using the `movePlayer` function. Ensure that you are a player and that the game is ongoing.
-
-### 4. Claiming Support Packages
-To claim support packages, call the `claimSupportPackage` function if you have a support package available.
-
-### 5. Claiming Treasure
-To claim the treasure, use the `claimTreasure` function if you have found the treasure in the game.
-
-### 6. Checking Game State
-- **Check Support Package:** Use the `checkSupportPackage` function to determine if you have a support package available.
-- **Check Treasure:** Use the `checkTreasure` function to determine if you have found the treasure.
-
-### 7. Viewing Player Information
-- **Verify Player Status:** Use the `isPlayer` function to check if an address is a player and get their status.
-- **List of Players:** Use the `ShowPlayers` function to see a list of all players.
-- **Find Player Coordinates:** Use the `findPlayer` function to get the current coordinates of a player.
-
-### 8. Leaving the Game
-If you want to leave the game, call the `leaveGame` function. Ensure that you are the player leaving the game.
-
----
 
 ## Additional Information
 - **Game Duration:** The game lasts for 15 minutes from the time it is started.The game automatically ends after 15 minutes.
