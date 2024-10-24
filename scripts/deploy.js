@@ -18,35 +18,26 @@ async function main() {
     console.log("BlockManager deployed to:", blockManager.address);
 
     // Deploy MyToken with deployer's address as initial address
-    const MyToken = await ethers.getContractFactory("MyToken");
-    const myToken = await MyToken.deploy(deployer.address);
+    const MyToken = await ethers.getContractFactory("HuntToken");
+    const myToken = await MyToken.deploy();
     await myToken.deployed();
-    console.log("MyToken deployed to:", myToken.address);
-
-    // Deploy TokenManager with PlayerManager, BlockManager, and MyToken addresses
-    const TokenManager = await ethers.getContractFactory("TokenManager");
-    const tokenManager = await TokenManager.deploy(playerManager.address, blockManager.address, myToken.address);
-    await tokenManager.deployed();
-    console.log("TokenManager deployed to:", tokenManager.address);
+    console.log("HuntToken deployed to:", myToken.address);
 
     // Deploy TreasureHuntGame with PlayerManager, BlockManager, TokenManager, and MyToken addresses
     const TreasureHuntGame = await ethers.getContractFactory("TreasureHuntGame");
+    
     const treasureHuntGame = await TreasureHuntGame.deploy(
         playerManager.address,
         blockManager.address,
-        tokenManager.address,
         myToken.address
     );
+    
     await treasureHuntGame.deployed();
     console.log("TreasureHuntGame deployed to:", treasureHuntGame.address);
 
     await treasureHuntGame.setNewAuthorized(deployer.address);
     console.log("Deployer now setNewAuthorized");
 
-    // Set TreasureHunt address in TokenManager
-    await tokenManager.setTreasureHunt(treasureHuntGame.address);
-    console.log("TreasureHunt address set in TokenManager");
-    
     await playerManager.setTreasureHunt(treasureHuntGame.address);
     console.log("TreasureHunt address set in PlayerManager");
 
