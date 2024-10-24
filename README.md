@@ -23,9 +23,9 @@ Each player navigates the virtual world, using **clues** and **strategies** to l
 ## 🎮 How to Play
 
 ### Treasure Hunt
-![Example](./images/Treasure.png)
+![Example](./images/hunt.png)
 
-- https://excalidraw.com/#json=7TE0xcUPvYZYAxOhcBule,bKRAeGvdVEzZdcVLI3lFhA
+- https://excalidraw.com/#json=tNh-QR4p3pUweFoGOHq8X,o0diMCh5r8JMcicSkzoA9Q
 
 ---
 
@@ -67,5 +67,3 @@ npx hardhat test
 npx hardhat run scripts/deploy.js --network sepolia
 ```
 ---
-
-![Example](./images/mygame.png)
