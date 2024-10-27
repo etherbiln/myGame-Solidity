@@ -2,13 +2,14 @@
 pragma solidity ^0.8.20;
 
 import "./PlayerManager.sol";
-
+import "./random.sol";
 /**
  * @title BlockManager
  * @dev Manages blocks for the Treasure Hunt game, including creating treasures and support packages.
  */
 contract BlockManager {
     PlayerManager public playerManager;
+    RandomNumberGenerator public randoms;
 
     uint256 public constant GRID_SIZE = 10;
     uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE;
@@ -39,24 +40,16 @@ contract BlockManager {
      * @dev Creates a treasure in a random block.
      */
     function createTreasure() external onlyTreasureHunt {
-        for (uint256 i = 0; i < 1; i++) {
-            uint256 position;
-            do {
-                position = random(i) % TOTAL_BLOCKS;
-            } while (blocks[position].isTreasure);
-            blocks[position].isTreasure = true;
-        }
+        uint256 position = randoms.getRandomNumberInRange();
+        blocks[position].isTreasure = true;
     }
 
     /**
      * @dev Creates support packages in random blocks.
      */
     function createSupportPackage() external onlyTreasureHunt {
-        for (uint256 i = 0; i < 15; i++) {
-            uint256 position;
-            do {
-                position = random(i + 1) % TOTAL_BLOCKS;
-            } while (blocks[position].isSupportPackage);
+        for (uint256 i  =0 ;i<5;i++) {
+            uint256 position = randoms.getRandomNumberInRange();
             blocks[position].isSupportPackage = true;
         }
     }
@@ -68,16 +61,6 @@ contract BlockManager {
      * @param salt The salt used for randomness.
      * @return result The generated random number.
      */
-    function random(uint256 salt) private view returns (uint256 result) {
-        result = uint256(keccak256(abi.encodePacked(
-            block.timestamp,
-            block.prevrandao,
-            blockhash(block.number - 1),
-            msg.sender,
-            salt
-        )));
-    }
-
     // Block Management
 
     /**
