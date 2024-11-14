@@ -16,10 +16,12 @@ contract TreasureHuntGame is Ownable {
     BlockManager public blockManager;
     HuntToken public token;
     
-    uint256 public constant SUPPORT_PACKAGE_REWARD = 150 * 10 ** 18;
-    uint256 public constant MOVE_PRICE = 25 * 10 ** 18;
+    uint256 public constant SUPPORT_PACKAGE_REWARD = 100 * 10 ** 18;
+    uint256 public MOVE_PRICE = 25 * 10 ** 18;
+    
     uint256 public gameDuration = 900; // 15 minutes
     uint256 public gameStartTime;
+
     address public authorizedAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
     address public TeamAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
 
@@ -144,6 +146,12 @@ contract TreasureHuntGame is Ownable {
         gameStartTime = 0;
         emit TreasureClaimed(msg.sender);
     }
+
+    // Uptade MOVE_PRICE
+    function uptadeMovePrice(uint32 newPrice) external onlyAuthorized {
+        MOVE_PRICE = newPrice;
+    }
+
 
     // Check functions
     function checkSupportPackage() public view returns (bool) {
