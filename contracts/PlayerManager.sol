@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-
 /**
  * @title PlayerManager
  * @dev Manages player actions and data for the Treasure Hunt game.
  */
 contract PlayerManager {
     uint256 public constant GRID_SIZE = 10;
+    address public treasureHuntAddress;
 
     struct Player {
         bool hasJoined;
@@ -15,11 +15,16 @@ contract PlayerManager {
         uint y;
         uint stepsCount;
     }
+    enum Direction {
+        Up,
+        Down,
+        Left,
+        Right 
+    }
 
+    address public setOwner = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
     address[] public playerAddresses;
     uint256 public totalPlayers;
-    address public treasureHuntAddress;
-    address public setOwner = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
 
     mapping(address => Player) public players;
     mapping(address => bool) private playerExists;
@@ -101,27 +106,28 @@ contract PlayerManager {
      * @param _direction The direction in which to move.
      * @return bool indicating whether the move was successful.
      */
-    function movePlayer(address _player, string memory _direction) external onlyTreasureHunt returns(bool) {
+
+    function movePlayer(address _player, Direction _direction) external onlyTreasureHunt returns (bool) {
         require(players[_player].hasJoined, "Player not joined");
         require(players[_player].stepsCount < 100, "Player has exceeded max steps!");
 
         uint256 x = players[_player].x;
         uint256 y = players[_player].y;
+        
         uint256 newx = x;
         uint256 newy = y;
 
-        bytes32 directionHash = keccak256(abi.encodePacked(_direction));
-        if (directionHash == keccak256(abi.encodePacked("up"))) {
-            require((y + 1) <= GRID_SIZE, "Out of bounds");
+        if (_direction == Direction.Up) {
+            require(y + 1 <= GRID_SIZE, "Out of bounds"); // Izgara sınırı kontrolü
             newy = y + 1;
-        } else if (directionHash == keccak256(abi.encodePacked("down"))) {
-            require(y >= 1, "Out of bounds");
+        } else if (_direction == Direction.Down) {
+            require(y >= 1, "Out of bounds"); // Izgara sınırı kontrolü
             newy = y - 1;
-        } else if (directionHash == keccak256(abi.encodePacked("left"))) {
-            require(x >= 1, "Out of bounds");
+        } else if (_direction == Direction.Left) {
+            require(x >= 1, "Out of bounds"); // Izgara sınırı kontrolü
             newx = x - 1;
-        } else if (directionHash == keccak256(abi.encodePacked("right"))) {
-            require((x + 1) <= GRID_SIZE, "Out of bounds");
+        } else if (_direction == Direction.Right) {
+            require(x + 1 <= GRID_SIZE, "Out of bounds"); // Izgara sınırı kontrolü
             newx = x + 1;
         } else {
             revert("Invalid direction");
@@ -130,7 +136,7 @@ contract PlayerManager {
         players[_player].x = newx;
         players[_player].y = newy;
         players[_player].stepsCount++;
-        
+    
         emit PlayerMoved(_player, newx, newy);
         return true;
     }

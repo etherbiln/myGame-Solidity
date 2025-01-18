@@ -28,7 +28,7 @@ contract TreasureHuntGame is Ownable {
     event GameStarted(uint256 startTime);
     event PlayerJoined(address indexed player);
     event PlayerLeft(address indexed player);
-    event PlayerMoved(address indexed player, string direction);
+    event PlayerMoved(address indexed player, PlayerManager.Direction);
     event SupportPackageClaimed(address indexed player);
     event TreasureClaimed(address indexed player);
 
@@ -110,11 +110,19 @@ contract TreasureHuntGame is Ownable {
      * @dev Allows a player to move in a specified direction during the game.
      * @param _direction The direction in which the player wants to move.
      */
-    function movePlayer(string memory _direction) external onlyPlayer(msg.sender) onlyDuringGame {
+    
+    // 0 -> up 
+    // 1 -> Down 
+    // 2 -> Left 
+    // 3 -> Right
+    function movePlayer(uint256 _direction) external onlyPlayer(msg.sender) onlyDuringGame {
+        PlayerManager.Direction playerManagerDirection = PlayerManager.Direction(_direction); // PlayerManager.Direction enum'ına dönüştürme
+        
+        require(_direction >= 0 && _direction <= uint256(PlayerManager.Direction.Right), "Invalid direction");
         require(token.transferFrom(msg.sender, address(this), MOVE_PRICE), "Token transfer failed");
-        require(playerManager.movePlayer(msg.sender, _direction), "Move failed");
+        require(playerManager.movePlayer(msg.sender, playerManagerDirection), "Move failed");
 
-        emit PlayerMoved(msg.sender, _direction);
+        emit PlayerMoved(msg.sender, playerManagerDirection);
     }
 
     // Claims
