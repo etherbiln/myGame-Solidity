@@ -13,16 +13,21 @@ contract PlayerManager {
         uint256 paid;
         uint x;
         uint y;
-        uint stepsCount;
+        uint z;
+        uint stepCount;
     }
+
     enum Direction {
         Up,
         Down,
+        Right,
         Left,
-        Right 
+        Upward,
+        Downward
     }
 
     address public setOwner = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+   
     address[] public playerAddresses;
     uint256 public totalPlayers;
 
@@ -31,7 +36,7 @@ contract PlayerManager {
 
     event PlayerJoined(address player);
     event PlayerLeave(address player);
-    event PlayerMoved(address player, uint x, uint y);
+    event PlayerMoved(address player, uint x, uint y,uint z);
     event GameStarted(uint256 startTime);
 
     /**
@@ -51,13 +56,14 @@ contract PlayerManager {
         require(!players[_player].hasJoined, "Player already joined");
         require(totalPlayers < 30, "Game is full");
 
-        players[_player] = Player(true, 0, 0, 0, 0);
+        players[_player] = Player(true,0,5, 5, 5, 0);
         playerAddresses.push(_player);
         playerExists[_player] = true;
         totalPlayers++;
         players[_player].paid = _amount;
 
         emit PlayerJoined(_player);
+        
         return true;
     }
 
@@ -71,14 +77,17 @@ contract PlayerManager {
         require(totalPlayers > 0, "No players in the game");
 
         uint256 index = PlayerNumber(_player);
+
         playerAddresses[index] = playerAddresses[playerAddresses.length - 1];
         playerAddresses.pop();
 
         delete players[_player];
         delete playerExists[_player];
+
         totalPlayers--;
 
         emit PlayerLeave(_player);
+       
         return true;
     }
 
@@ -109,35 +118,45 @@ contract PlayerManager {
 
     function movePlayer(address _player, Direction _direction) external onlyTreasureHunt returns (bool) {
         require(players[_player].hasJoined, "Player not joined");
-        require(players[_player].stepsCount < 100, "Player has exceeded max steps!");
+        require(players[_player].stepCount <= 125, "Player has exceeded max steps!");
 
         uint256 x = players[_player].x;
         uint256 y = players[_player].y;
+        uint256 z = players[_player].z;
         
         uint256 newx = x;
         uint256 newy = y;
-
+        uint256 newz = z;
+        
         if (_direction == Direction.Up) {
-            require(y + 1 <= GRID_SIZE, "Out of bounds"); // Izgara sınırı kontrolü
+            require(y + 1 <= GRID_SIZE, "Out of bounds");
             newy = y + 1;
         } else if (_direction == Direction.Down) {
-            require(y >= 1, "Out of bounds"); // Izgara sınırı kontrolü
+            require(y >= 1, "Out of bounds"); 
             newy = y - 1;
         } else if (_direction == Direction.Left) {
-            require(x >= 1, "Out of bounds"); // Izgara sınırı kontrolü
+            require(x >= 1, "Out of bounds");
             newx = x - 1;
         } else if (_direction == Direction.Right) {
-            require(x + 1 <= GRID_SIZE, "Out of bounds"); // Izgara sınırı kontrolü
+            require(x + 1 <= GRID_SIZE, "Out of bounds");
             newx = x + 1;
+        } else if (_direction == Direction.Upward) {
+            require(z + 1 <= GRID_SIZE, "Out of bounds");
+            newz = z + 1;
+        } else if (_direction == Direction.Downward) {
+            require(z >= 1, "Out of bounds");
+            newz = z - 1;
         } else {
             revert("Invalid direction");
         }
 
         players[_player].x = newx;
         players[_player].y = newy;
-        players[_player].stepsCount++;
+        players[_player].z = newz;
+        
+        players[_player].stepCount++;
     
-        emit PlayerMoved(_player, newx, newy);
+        emit PlayerMoved(_player, newx, newy,newz);
         return true;
     }
 
@@ -165,6 +184,7 @@ contract PlayerManager {
      * @param _player The address of the player.
      * @return uint256 indicating the player's index number.
      */
+
     function PlayerNumber(address _player) public onlyPlayer(_player) view returns(uint256) {
         for (uint256 i = 0; i < playerAddresses.length; i++) {
             if (playerAddresses[i] == _player) {
@@ -180,10 +200,10 @@ contract PlayerManager {
      * @return x The x-coordinate of the player's position.
      * @return y The y-coordinate of the player's position.
      */
-    function findPlayer(address _player) public onlyPlayer(_player) view returns (uint256 x, uint256 y) {
+    function findPlayer(address _player) public onlyPlayer(_player) view returns (uint256 x, uint256 y,uint256 z) {
         Player memory player = players[_player];
         require(player.hasJoined, "Player has not joined the game");
-        return (player.x, player.y);
+        return (player.x, player.y,player.z);
     }
 
     /**
