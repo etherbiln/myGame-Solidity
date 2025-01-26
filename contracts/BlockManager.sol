@@ -3,16 +3,18 @@ pragma solidity ^0.8.20;
 
 import "./PlayerManager.sol";
 import "./random.sol";
+
 /**
  * @title BlockManager
- * @dev Manages blocks for the Treasure Hunt game, including creating treasures and support packages.
+ * @dev Manages blocks for the Treasure Hunt game, including creating treasures and support packages in 3D grid.
  */
 contract BlockManager {
     PlayerManager public playerManager;
     RandomNumberGenerator public randoms;
 
-    uint256 public constant GRID_SIZE = 10;
-    uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE;
+    uint256 public constant GRID_SIZE = 5;
+    uint256 public constant TOTAL_BLOCKS = GRID_SIZE * GRID_SIZE * GRID_SIZE; // 3D Grid
+    
     address public setOwner = 0x1405Ee3D5aF0EEe632b7ece9c31fA94809e6030d;
     address public treasureHuntAddress;
 
@@ -39,18 +41,18 @@ contract BlockManager {
     /**
      * @dev Creates a treasure in a random block.
      */
-    function createTreasure() external onlyTreasureHunt {
-        uint256 position = randoms.getRandomNumberInRange();
-        blocks[position].isTreasure = true;
+    function createTreasure() external view onlyTreasureHunt {
+        // uint256 position = randoms.getRandomNumberInRange(TOTAL_BLOCKS);
+        // blocks[position].isTreasure = true;
     }
 
     /**
      * @dev Creates support packages in random blocks.
      */
-    function createSupportPackage() external onlyTreasureHunt {
-        for (uint256 i  =0 ;i<5;i++) {
-            uint256 position = randoms.getRandomNumberInRange();
-            blocks[position].isSupportPackage = true;
+    function createSupportPackage() external view onlyTreasureHunt {
+        for (uint256 i = 0; i < 5; i++) {
+           // uint256 position = randoms.getRandomNumberInRange(TOTAL_BLOCKS);
+           // blocks[position].isSupportPackage = true;
         }
     }
 
@@ -61,6 +63,7 @@ contract BlockManager {
      * @param salt The salt used for randomness.
      * @return result The generated random number.
      */
+
     // Block Management
 
     /**
@@ -109,13 +112,27 @@ contract BlockManager {
     // Index Function
 
     /**
-     * @dev Calculates the index of a player based on their coordinates.
+     * @dev Calculates the index of a player based on their 3D coordinates.
      * @param _player The address of the player.
      * @return uint256 The index of the player.
      */
+
     function PlayerIndex(address _player) public view returns (uint256) {
-        (uint256 playerX, uint256 playerY) = playerManager.findPlayer(_player);
-        return playerX * GRID_SIZE + playerY;
+        (uint x,uint  y, uint z) = playerManager.findPlayer(_player);
+        
+        uint256 center = uint256(GRID_SIZE / 2); 
+        uint256 offsetX = x + center;
+        uint256 offsetY = y + center; 
+        uint256 offsetZ = z + center; 
+
+        require(
+            offsetX >= 0 && offsetX < GRID_SIZE &&
+            offsetY >= 0 && offsetY < GRID_SIZE &&
+            offsetZ >= 0 && offsetZ < GRID_SIZE,
+            "Coordinates out of bounds"
+        );  
+        
+        return uint256(offsetZ) * GRID_SIZE * GRID_SIZE + uint256(offsetY) * GRID_SIZE + uint256(offsetX);
     }
 
     // Authorized Functions
