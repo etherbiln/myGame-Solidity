@@ -19,7 +19,7 @@ contract TreasureHuntGame is Ownable {
     uint256 public constant SUPPORT_PACKAGE_REWARD = 100 * 10 ** 18;
     uint256 public MOVE_PRICE = 25 * 10 ** 18;
     
-    uint256 public gameDuration = 900; // 15 minutes
+    uint256 public gameDuration = 900;
     uint256 public gameStartTime;
 
     address public authorizedAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
@@ -38,6 +38,7 @@ contract TreasureHuntGame is Ownable {
      * @param _blockManager Address of the BlockManager contract.
      * @param _token Address of the HuntToken contract.
      */
+
     constructor(
         address _playerManager,
         address _blockManager,
@@ -71,8 +72,8 @@ contract TreasureHuntGame is Ownable {
     function leaveGame(address _player) external onlyPlayer(_player) {
         uint256 paidAmount = playerManager.getTotalPaidPlayer(_player);
         uint256 refundAmount = paidAmount / 5;
+        
         require(refundAmount > 0, "No paid!");
-
         require(playerManager.leaveGame(msg.sender), "Player leave failed");
         require(token.transfer(msg.sender, refundAmount), "Token transfer failed");
 
@@ -111,14 +112,9 @@ contract TreasureHuntGame is Ownable {
      * @param _direction The direction in which the player wants to move.
      */
     
-    // 0 -> up 
-    // 1 -> Down 
-    // 2 -> Left 
-    // 3 -> Right
     function movePlayer(uint256 _direction) external onlyPlayer(msg.sender) onlyDuringGame {
-        PlayerManager.Direction playerManagerDirection = PlayerManager.Direction(_direction); // PlayerManager.Direction enum'ına dönüştürme
-        
-        require(_direction >= 0 && _direction <= uint256(PlayerManager.Direction.Right), "Invalid direction");
+        PlayerManager.Direction playerManagerDirection = PlayerManager.Direction(_direction);
+        // Need more
         require(token.transferFrom(msg.sender, address(this), MOVE_PRICE), "Token transfer failed");
         require(playerManager.movePlayer(msg.sender, playerManagerDirection), "Move failed");
 
@@ -179,8 +175,8 @@ contract TreasureHuntGame is Ownable {
         return playerManager.showPlayers();
     }
 
-    function findPlayer(address _player) public view returns (uint256 x, uint256 y) {
-        (x, y) = playerManager.findPlayer(_player);
+    function findPlayer(address _player) public view returns (uint256 x, uint256 y,uint256 z) {
+        (x, y,z) = playerManager.findPlayer(_player);
     }
 
     function getTotalPlayers() public view returns (uint256) {
